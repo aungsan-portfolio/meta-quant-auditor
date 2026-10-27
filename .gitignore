@@ -1,0 +1,28 @@
+# Local credentials and environment
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+*.pem
+*.key
+
+# Local Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local Streamlit agent skills can be environment-specific symlinks
+.agents/skills/
+.claude/skills/
+
+# Local operational artifacts should not be published
+*.log
+logs/
+data/
+reports/
+evidence/
+backups/
