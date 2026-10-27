@@ -19,17 +19,18 @@ class ExplanationJob:
         with self._lock:
             if self._future is not None and not self._future.done():
                 return False
-            self._identity = (trace.trace_id, finding.event_id)
+            self._identity = (getattr(trace, 'job_identity', trace.trace_id), finding.event_id)
             self._future = self._executor.submit(self._worker, trace, finding, key)
             return True
 
     def state(self, trace: AuditTrace, finding: Finding) -> tuple[str, Explanation | None]:
         with self._lock:
+            identity = (getattr(trace, 'job_identity', trace.trace_id), finding.event_id)
             if self._future is None:
                 return 'NOT_STARTED', None
             if not self._future.done():
-                return ('PENDING' if self._identity == (trace.trace_id, finding.event_id) else 'OTHER_PENDING'), None
-            if self._identity != (trace.trace_id, finding.event_id):
+                return ('PENDING' if self._identity == identity else 'OTHER_PENDING'), None
+            if self._identity != identity:
                 return 'NOT_STARTED', None
             try:
                 result = self._future.result()

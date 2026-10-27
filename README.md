@@ -1,19 +1,21 @@
-# Meta Quant Auditor — Synthetic Event Demo
+# Meta Quant Auditor — Synthetic Audit Workbench
 
-Meta Quant Auditor helps a reviewer understand why a fictional quote was accepted or rejected by one audit gate. It shows the gate's deterministic outcome next to the evidence, and optionally asks Meta's Muse Spark Open model on Baseten to explain that same evidence in plain English.
+Meta Quant Auditor explores why a fictional paper-simulation attempt was blocked or passed checks. It replays multiple gates, inspects recorded synthetic gate results for contradictions, and optionally asks Meta's Muse Spark Open on Baseten to explain the evidence in plain English.
 
 This is a small standalone hackathon demo, not a trading bot, financial adviser, broker connection, or complete simulation engine. It uses fabricated data and thresholds. A single gate PASS is not a trade authorization or an overall eligibility decision. Model output can be wrong and must be checked against the displayed evidence.
 
-## Demo flow
+## What works now
 
-1. Choose **Wide spread**, **Stale quote**, **Within limits**, or **Unknown session**.
-2. Inspect the quote freshness and spread quality gate outcomes and their limits.
-3. Select a gate and expand **View the synthetic evidence sent to the model**.
-4. With an eligible Baseten key configured locally, select **Explain selected event**. If the request is running, select **Refresh explanation status**. Compare the answer with the evidence.
+1. In Streamlit's page navigation, open **Audit Workbench**. Replay a fictional case across quote freshness, spread, account state, chase and duplicate checks. Download its Markdown report or synthetic event trace JSON.
+2. Open **Trace Inspector** and choose **Inconsistent spread record** to see a recorded PASS that conflicts with its observed value and limit. Alternatively, upload a synthetic trace downloaded from the workbench. The inspector reports `CONSISTENT`, `INCOMPLETE`, or `REVIEW_REQUIRED` and explains its checks.
+3. On either page, review the explicitly allowlisted evidence, then optionally request a Muse Spark explanation. The model does not determine or change gate outcomes. Compare its text with the evidence; it can be wrong.
+4. The original **app** home page remains available for inspecting the earlier single-gate examples.
 
-The gate checks run without an API key. The optional model request uses `meta-models/muse-spark-open-1026`, `reasoning_effort=low`, and `max_tokens=1024`. It runs in the background and cannot alter gate outcomes. There is no automatic retry; explicit model calls may consume credits. The 30-second request timeout does not guarantee that a worker thread will terminate at precisely 30 seconds.
+The checks run without an API key. The optional model request uses `meta-models/muse-spark-open-1026`, `reasoning_effort=low`, and `max_tokens=1024` for a single gate or `1536` for a replay or trace review. It runs in the background. There is no automatic retry; explicit model calls may consume credits. The 30-second request timeout does not guarantee that a worker thread terminates at precisely 30 seconds.
 
-Only built-in synthetic evidence is sent to Baseten. No real market data, real account data, arbitrary uploads, broker integration, or order execution is included. Incomplete or truncated model output is reported as unavailable rather than displayed as a completed explanation.
+The upload pages accept only the documented, closed synthetic JSON formats. Do not upload real accounts, orders, credentials, private information, or real market data: a `synthetic` flag alone cannot prove data is safe. After an explicit model request, only normalized allowlisted facts and checks are sent; the original uploaded file is not sent. Incomplete model output is reported as unavailable. See [the format and safety limitations](docs/SYNTHETIC_FORMATS.md).
+
+**Current limitations:** The replay recalculates fictional checks from one shared quote snapshot; it is not a replay of the participant's existing bot. The trace inspector supports the new synthetic format only, not the pre-event bot's historical trace format. Its consistency checks cannot prove event provenance. Duplicate detection uses an in-memory simulation ledger, not persistent or broker-side idempotency. No broker integration or order execution exists. These features are a development increment, not a finished or production-ready hackathon submission.
 
 ## Run locally on Windows
 
@@ -37,7 +39,7 @@ For model explanations, create a local `.env` from `.env.example` and enter your
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-These tests use fake transports and do not call Baseten. The participant reported successful live explanation responses in their Windows demo for G01 PASS, G01 BLOCK, and G02 VETO; those responses were shared in conversation, not independently reproduced by the preparer of this package. They do not certify other scenarios or production readiness. The separate project's T1–T7 requirements have not been certified here.
+These tests use fake transports and do not call Baseten. The participant reported successful live explanation responses in the earlier single-gate Windows demo for G01 PASS, G01 BLOCK, and G02 VETO; those responses were shared in conversation. The newer replay and trace inspector pages have not yet been tested live with the provider or in the participant's Windows environment. The separate project's T1–T7 requirements have not been certified here.
 
 ## Project provenance and dependencies
 
