@@ -1,6 +1,6 @@
 # Synthetic input formats and limits
 
-Both formats below were written during the event for this standalone project. They are not compatible with the participant's pre-event bot trace schema. Obtain a valid starting example using the **Download example JSON** buttons in the app. Files are bounded to 65,536 bytes and 1–12 attempts. Duplicate JSON keys, non-finite values, extra fields and invalid types are rejected.
+The formats below were written during the event for this standalone project. They are not compatible with the participant's pre-event bot trace schema. Obtain a valid starting example using the **Download example JSON** buttons in the app. Files are bounded to 65,536 bytes; the synthetic case accepts 1–12 attempts and the lifecycle format accepts 1–40 events. Duplicate JSON keys, non-finite values, extra fields and invalid types are rejected.
 
 ## Synthetic case
 
@@ -29,6 +29,12 @@ The optional quote object adds G01 session-aware freshness and G02 spread checks
 G03 records a critical finding if a simulated reservation release occurs while the last broker status is non-terminal or unknown, or after a positive fill without a subsequent position observation. For a nonzero position it also requires a later ACTIVE coverage observation with the same quantity. Cancel requested is not cancellation confirmed. A later fill and any prior early release remain visible even if later evidence appears safe. Conflicting status or decreasing cumulative fill blocks the check. Reservation releases and coverage observations are synthetic assertions, not proof that a reservation existed or that a valid linked protective order existed. No side, stop type, order linkage, actual broker state, persistent reservation or live risk policy is verified.
 
 G04 optionally evaluates two independent supplied measures. Gross percentage is `sum(abs(market_value)) / equity * 100`; stop-risk heat is `sum(risk_to_stop) / equity * 100`. These per-position inputs and both caps are fictional, not calculated from an actual broker or the user's production thresholds. Each percentage is rounded to six decimals before comparison. Zero or missing equity, a missing input, or a missing cap yields `UNKNOWN` for the affected measure, without concealing a separate breach in the other. Positive equity smaller than 0.01 is rejected as outside this demo's supported numeric range. A pass for either G03 or G04 does not authorize an order or imply an overall risk decision.
+
+## Human review of a synthetic memo
+
+The cancellation page reconstructs a structured memo from the current deterministic report, including all events and historical critical findings. It compares the entire structured memo with a fresh reconstruction and assigns a SHA-256 content fingerprint. A reviewer can mark it reviewed after affirming the evidence and scope, or flag it for manual review without those affirmations. Changing evidence or a computed finding changes the fingerprint, so an earlier action is not shown for the changed memo.
+
+The record lives in the Streamlit browser session unless the user downloads it. The fingerprint and on-device timestamp provide neither authenticated identity nor a digital signature; a checkbox cannot establish that evidence was actually read. This review does not clear a safety finding, authorize trading, or check natural-language model claims. Optional AI prose is deliberately excluded from the structured memo and reviewed export and still needs independent human comparison with the evidence. The fixed Plan → Act → Observe display describes application steps, not an autonomous model-agent execution trace.
 
 ## Privacy and model boundary
 

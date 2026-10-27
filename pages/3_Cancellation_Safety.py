@@ -11,6 +11,7 @@ import streamlit as st
 from auditor.cancellation import LifecycleError, audit_trace, markdown_report, model_evidence, parse_trace, sample_traces
 from auditor.cancellation_model import LifecycleSelection, explain_lifecycle
 from auditor.jobs import ExplanationJob
+from auditor.review import ReviewError, build_memo, record_review, review_download, validate_memo
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -40,8 +41,13 @@ if raw is None:
     st.stop()
 try:
     report = audit_trace(parse_trace(raw))
+    memo = build_memo(report)
+    memo_digest = validate_memo(report, memo)
 except LifecycleError as exc:
     st.error(f'Case rejected: {exc}')
+    st.stop()
+except ReviewError:
+    st.error('The synthetic audit could not be reconstructed from the current checks.')
     st.stop()
 
 if 'cancellation_job' not in st.session_state:
@@ -57,6 +63,31 @@ elif report.current_gate == 'BLOCK':
 else:
     st.success(f'G03: PASS for this simulated cancellation check — {report.current_reason}')
 st.caption(f'Trace {report.trace_id} · A single gate PASS never authorizes a trade.')
+
+st.subheader('Audit checklist')
+st.caption('Each check is calculated from the current fictional case. Unknown data is not a pass.')
+g01, g02, g03, g04 = st.columns(4)
+q_check = memo['checks']['G01']
+s_check = memo['checks']['G02']
+c_check = memo['checks']['G03']
+x_check = memo['checks']['G04']
+g01.metric('G01 · Quote freshness', q_check['status'])
+g01.caption(q_check['reason'])
+g02.metric('G02 · Spread quality', s_check['status'])
+g02.caption(s_check['reason'])
+history_count = len(c_check['critical_history'])
+g03.metric('G03 · Cancellation', 'CRITICAL HISTORY' if history_count else c_check['current_status'])
+g03.caption(f"Current gate: {c_check['current_status']} · Critical history: {history_count}")
+g04.metric('G04 · Portfolio limits', f"{x_check['gross_status']} / {x_check['heat_status']}")
+g04.caption('Gross exposure / supplied stop-risk heat')
+st.caption('G03 preserves historical critical findings even if a later current gate passes. G04 measures are separate.')
+
+with st.expander('Audit workflow · Plan → Act → Observe'):
+    st.write('**Plan:** Read the selected synthetic case and apply the coded quote, cancellation and portfolio checks.')
+    st.write('**Act:** Reconstruct and check the case locally; no broker is contacted.')
+    st.write(f"**Observe:** {len(report.events)} fictional events and {len(report.findings)} findings; "
+             f"{history_count} critical historical findings.")
+    st.caption('These are fixed application steps. They are not an autonomous model plan or a model tool-use log.')
 
 st.subheader('G01 / G02 · Synthetic quote checks')
 if report.quote is None:
@@ -139,3 +170,46 @@ with right:
             st.warning(f'Model explanation unavailable: {result.reason}')
     else:
         st.info('Explicit model requests may consume credits. There are no automatic retries.')
+
+st.divider()
+st.subheader('3 · Human review of the deterministic memo')
+st.caption('Review the checklist and lifecycle evidence above. This records a reviewer action for the fictional case, not a trade decision.')
+st.info('The memo was reconstructed from the coded checks. Optional model prose is not included or automatically verified.')
+with st.expander('Inspect the structured memo'):
+    st.json(memo)
+st.caption(f'Memo fingerprint: {memo_digest} · This identifies content; it is not a digital signature.')
+if 'cancellation_reviews' not in st.session_state:
+    st.session_state.cancellation_reviews = {}
+
+with st.form(f'cancellation_review_{memo_digest}'):
+    evidence_ack = st.checkbox('I compared the checklist, recorded findings, and event evidence for this case.')
+    scope_ack = st.checkbox('I understand this is fictional, AI prose is unverified, and this review does not authorize a trade.')
+    review_button, flag_button = st.columns(2)
+    reviewed = review_button.form_submit_button('Mark audit memo reviewed', use_container_width=True)
+    flagged = flag_button.form_submit_button('Flag for manual review', use_container_width=True)
+
+if reviewed or flagged:
+    try:
+        review = record_review(report, memo, 'REVIEWED' if reviewed else 'NEEDS_MANUAL_REVIEW',
+                               evidence_acknowledged=evidence_ack, scope_acknowledged=scope_ack)
+        st.session_state.cancellation_reviews[memo_digest] = review
+    except ReviewError as exc:
+        st.warning(str(exc))
+
+review = st.session_state.cancellation_reviews.get(memo_digest)
+if review is not None:
+    try:
+        download = review_download(report, memo, review)
+    except ReviewError:
+        st.error('This review no longer matches the current synthetic evidence.')
+    else:
+        if review.decision == 'REVIEWED':
+            st.success('Memo marked reviewed. This action does not clear any finding or verify model prose.')
+        else:
+            st.warning('Memo flagged for manual review.')
+        st.caption(f'Recorded at {review.recorded_utc} using this device clock. '
+                   'No reviewer identity is verified; the action remains in this browser session unless downloaded.')
+        st.download_button('Download reviewed synthetic audit', download,
+                           file_name='synthetic-audit-review.md', mime='text/markdown')
+else:
+    st.caption('No reviewer action recorded for this memo. Switching to different evidence requires a new review.')
