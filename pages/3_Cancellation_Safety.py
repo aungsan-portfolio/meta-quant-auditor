@@ -10,6 +10,9 @@ import streamlit as st
 
 from auditor.cancellation import LifecycleError, audit_trace, markdown_report, model_evidence, parse_trace, sample_traces
 from auditor.cancellation_model import LifecycleSelection, explain_lifecycle
+from auditor.claims import ClaimsError, example_claims, verify_claims
+from auditor.claims_model import ClaimsSelection, generate_claims
+from auditor.followup import FollowupError, append_followup, evidence_request
 from auditor.jobs import ExplanationJob
 from auditor.review import ReviewError, build_memo, record_review, review_download, validate_memo
 
@@ -40,13 +43,18 @@ with st.sidebar:
 if raw is None:
     st.stop()
 try:
-    report = audit_trace(parse_trace(raw))
+    base_report = audit_trace(parse_trace(raw))
+    if 'cancellation_followups' not in st.session_state:
+        st.session_state.cancellation_followups = {}
+    active_raw = st.session_state.cancellation_followups.get(base_report.trace_id, raw)
+    report = audit_trace(parse_trace(active_raw))
+    missing = evidence_request(report)
     memo = build_memo(report)
     memo_digest = validate_memo(report, memo)
 except LifecycleError as exc:
     st.error(f'Case rejected: {exc}')
     st.stop()
-except ReviewError:
+except (ReviewError, FollowupError):
     st.error('The synthetic audit could not be reconstructed from the current checks.')
     st.stop()
 
@@ -88,6 +96,51 @@ with st.expander('Audit workflow · Plan → Act → Observe'):
     st.write(f"**Observe:** {len(report.events)} fictional events and {len(report.findings)} findings; "
              f"{history_count} critical historical findings.")
     st.caption('These are fixed application steps. They are not an autonomous model plan or a model tool-use log.')
+
+st.subheader('Missing lifecycle evidence')
+st.caption('This status concerns G03 lifecycle evidence only; it is not an overall trade decision.')
+if missing.status == 'NEEDS_INPUT':
+    st.warning(f'NEEDS_INPUT · {missing.reason}')
+    st.write(missing.request)
+    st.caption('Add a fictional follow-up below. The app does not connect to a broker. '
+               'The example timestamp advances by one simulated second.')
+    with st.form(f'fictional_followup_{report.trace_id}'):
+        if missing.event_type == 'BROKER_ORDER':
+            next_status = st.selectbox('Fictional broker status',
+                                       ['CANCELED', 'EXPIRED', 'REJECTED', 'FILLED', 'PENDING_CANCEL', 'UNKNOWN'])
+            next_fill = st.number_input('Fictional cumulative fill', min_value=0.0, value=0.0, step=1.0)
+            fill_unknown = st.checkbox('Cumulative fill is unknown')
+            next_fields = {'status': next_status, 'cumulative_fill': None if fill_unknown else next_fill}
+        elif missing.event_type == 'POSITION_OBSERVED':
+            next_position = st.number_input('Fictional observed position quantity', min_value=0.0, value=0.0, step=1.0)
+            position_unknown = st.checkbox('Position quantity is unknown')
+            next_fields = {'position_qty': None if position_unknown else next_position}
+        else:
+            next_status = st.selectbox('Fictional protection status', ['ACTIVE', 'PENDING_CANCEL', 'MISSING', 'UNKNOWN'])
+            next_coverage = st.number_input('Fictional protection coverage quantity', min_value=0.0, value=0.0, step=1.0)
+            coverage_unknown = st.checkbox('Coverage quantity is unknown')
+            next_fields = {'status': next_status, 'coverage_qty': None if coverage_unknown else next_coverage}
+        add_followup = st.form_submit_button('Add fictional follow-up and recheck', use_container_width=True)
+    if add_followup:
+        try:
+            st.session_state.cancellation_followups[base_report.trace_id] = append_followup(report, next_fields)
+            st.rerun()
+        except FollowupError as exc:
+            st.warning(str(exc))
+elif missing.status == 'REVIEW_REQUIRED':
+    st.warning(f'REVIEW_REQUIRED · {missing.reason}')
+    st.write(missing.request)
+else:
+    st.info(f'READY_FOR_REVIEW · {missing.reason}')
+    st.write(missing.request)
+if base_report.trace_id in st.session_state.cancellation_followups:
+    st.caption('Follow-up observations are session-only and do not alter the original example. '
+               'Historical findings remain in the audit.')
+    st.download_button('Download fictional follow-up trace', active_raw,
+                       file_name='synthetic-followup.json', mime='application/json')
+    if st.button('Reset fictional follow-ups'):
+        st.session_state.cancellation_followups.pop(base_report.trace_id, None)
+        st.rerun()
 
 st.subheader('G01 / G02 · Synthetic quote checks')
 if report.quote is None:
@@ -170,6 +223,63 @@ with right:
             st.warning(f'Model explanation unavailable: {result.reason}')
     else:
         st.info('Explicit model requests may consume credits. There are no automatic retries.')
+
+st.divider()
+st.subheader('2b · Check structured claims against evidence')
+st.caption('Only listed scalar claims are checked against this fictional record. '
+           'Narrative interpretations, missing facts and real-world truth are not verified.')
+if 'cancellation_claims_job' not in st.session_state:
+    st.session_state.cancellation_claims_job = ExplanationJob(worker=generate_claims)
+if 'cancellation_claims_mode' not in st.session_state:
+    st.session_state.cancellation_claims_mode = {}
+claims_job = st.session_state.cancellation_claims_job
+claims_selection = ClaimsSelection()
+claims_status, claims_result = claims_job.state(report, claims_selection)
+claims_busy = claims_status in ('PENDING', 'OTHER_PENDING')
+sample_button, model_button = st.columns(2)
+if sample_button.button('Try fictional claims · no model', use_container_width=True):
+    st.session_state.cancellation_claims_mode[report.trace_id] = 'SAMPLE'
+if model_button.button('Ask Muse Spark for structured claims', disabled=claims_busy or not usable,
+                       use_container_width=True):
+    if claims_job.start(report, claims_selection, api_key):
+        st.session_state.cancellation_claims_mode[report.trace_id] = 'MODEL'
+        st.rerun()
+
+mode = st.session_state.cancellation_claims_mode.get(report.trace_id)
+claims_text = None
+if mode == 'SAMPLE':
+    st.info('Fictional sample claims; no AI model was called.')
+    claims_text = example_claims(report)
+elif mode == 'MODEL':
+    if claims_busy:
+        st.info('The model is working; the offline audit remains available.')
+        st.button('Refresh structured claims')
+    elif claims_status == 'DONE' and claims_result is not None:
+        if claims_result.status == 'AVAILABLE':
+            st.caption('Structured response received from Muse Spark. The following field checks run locally.')
+            claims_text = claims_result.text
+        else:
+            st.warning(f'Claims unavailable: {claims_result.reason}. No claim has been verified.')
+    else:
+        st.info('No model result for this synthetic case.')
+else:
+    st.caption('Try the offline sample, or request a model response. Model calls may consume credits.')
+
+if claims_text is not None:
+    try:
+        checked = verify_claims(report, claims_text)
+    except ClaimsError as exc:
+        st.warning(f'Claims unavailable: {exc} No claim has been verified.')
+    else:
+        st.dataframe([{'Claim': c.index, 'Reference': f'{c.event_id or c.scope}.{c.field}',
+                       'Claimed': str(c.claimed),
+                       'Record': 'unknown / n.a.' if c.evidence is None else str(c.evidence),
+                       'Result': c.status, 'Reason': c.reason} for c in checked.claims],
+                     hide_index=True, use_container_width=True)
+        st.caption('EVIDENCE_MATCH means an exact match to a supplied synthetic field, not proof of an actual event.')
+        if checked.interpretation:
+            st.warning('The following interpretation is unverified and is not part of the field checks.')
+            st.text(checked.interpretation)
 
 st.divider()
 st.subheader('3 · Human review of the deterministic memo')

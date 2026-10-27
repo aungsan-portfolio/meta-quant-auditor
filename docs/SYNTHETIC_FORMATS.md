@@ -36,6 +36,18 @@ The cancellation page reconstructs a structured memo from the current determinis
 
 The record lives in the Streamlit browser session unless the user downloads it. The fingerprint and on-device timestamp provide neither authenticated identity nor a digital signature; a checkbox cannot establish that evidence was actually read. This review does not clear a safety finding, authorize trading, or check natural-language model claims. Optional AI prose is deliberately excluded from the structured memo and reviewed export and still needs independent human comparison with the evidence. The fixed Plan → Act → Observe display describes application steps, not an autonomous model-agent execution trace.
 
+## Missing lifecycle evidence and follow-ups
+
+The cancellation page reports `NEEDS_INPUT` for specific missing G03 lifecycle evidence: unknown broker truth, non-terminal order, missing post-fill position or missing/mismatched protection. It asks for the next relevant fictional observation; input is appended as a new event with a synthetic ID and the next synthetic UTC second. It never rewrites prior observations. Conflicting observations or historical warnings/critical findings require review and are not automatically erased by a later gate PASS. `READY_FOR_REVIEW` describes only the G03 lifecycle check and is not an overall eligibility decision; G01/G02/G04 remain independent.
+
+Follow-up cases remain in the browser session unless exported as closed-format synthetic JSON. A change creates a different trace identity, so a model response or reviewer action for the earlier case is not presented as the result for the changed case. The workflow does not obtain or verify live broker evidence and must not be used with actual accounts or trading data.
+
+## Structured claim comparison
+
+Optional model text must be a bounded JSON object with `claims` and an `interpretation`. Each claim is a scalar field assertion with `scope`, `event_id`, `field` and `value`; the supported scopes cover specific lifecycle events, quote fields, exposure fields, current G03 fields and recorded finding codes. Code revalidates the report before comparing each claim. `EVIDENCE_MATCH` means a typed scalar matches the supplied synthetic record; `CONTRADICTION` means it differs from a known recorded value; `UNVERIFIED` covers missing evidence, unsupported fields or invalid types. The model's free-form interpretation is not checked. Exact field matches cannot prove the interpretation, completeness, true event provenance, or safe trading.
+
+Malformed/empty/truncated responses, duplicate JSON keys and invalid top-level formats are not treated as successful checks. Native JSON mode is not requested; the model's text must still parse and pass local validation. The offline sample is explicitly fabricated and never labeled as provider output.
+
 ## Privacy and model boundary
 
 Do not upload real bot logs, account information, orders, credentials, personally identifiable information or proprietary data. Setting `synthetic: true` does not sanitize a real file. Validators restrict fields and identifier shapes, but no validation can guarantee that a user has not placed sensitive information in an allowed value. When requested, only the normalized fields shown in the app and deterministic checks go to Baseten; the original file does not. Generated text is unverified and can contain errors.

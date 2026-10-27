@@ -10,9 +10,11 @@ On October 27, 2026, a standalone demo was prepared in an isolated workspace. It
 
 The candidate was assembled from the event demo files available to the preparer. The participant's separate Windows working folder could have changed independently and cannot be inspected from this workspace. File comparison and secret scans are useful checks but cannot prove authorship, completeness, or hackathon eligibility. The organizer's answer on this project category was pending at preparation time.
 
+On October 28 in the participant's local time, newly written event-window code added a bounded structured-claim comparison and a synthetic missing-evidence/follow-up workflow. These use the standalone demo's existing lifecycle format and do not copy workshop or pre-event bot code. A model-generated interpretation remains unverified even when individual scalar claims match the fictional record.
+
 ## Live-test record
 
-The participant reported successful model explanations for a fresh quote (G01 PASS), a stale quote (G01 BLOCK), and a wide spread (G02 VETO) in the original single-gate Windows demo. These are participant-reported observations from conversation. The newer replay, trace inspector and cancellation pages have not yet been tested live with Baseten or in the participant's Windows environment. The project does not include live logs or credentials; offline tests use fake transports.
+The participant reported successful model explanations for a fresh quote (G01 PASS), a stale quote (G01 BLOCK), and a wide spread (G02 VETO) in the original single-gate Windows demo. These are participant-reported observations from conversation. A later Windows screenshot showed the cancellation checklist, critical-history scenario and human review controls, without showing a submitted review action. The new structured-claims and synthetic-follow-up features have not been tested with the live provider or in the participant's Windows environment. The project does not include live logs or credentials; offline tests use fake transports.
 
 ## Suggested honest demo opening
 
