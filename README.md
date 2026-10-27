@@ -6,16 +6,16 @@ This is a small standalone hackathon demo, not a trading bot, financial adviser,
 
 ## What works now
 
-1. In Streamlit's page navigation, open **Audit Workbench**. Replay a fictional case across quote freshness, spread, account state, chase and duplicate checks. Download its Markdown report or synthetic event trace JSON.
-2. Open **Trace Inspector** and choose **Inconsistent spread record** to see a recorded PASS that conflicts with its observed value and limit. Alternatively, upload a synthetic trace downloaded from the workbench. The inspector reports `CONSISTENT`, `INCOMPLETE`, or `REVIEW_REQUIRED` and explains its checks.
-3. On either page, review the explicitly allowlisted evidence, then optionally request a Muse Spark explanation. The model does not determine or change gate outcomes. Compare its text with the evidence; it can be wrong.
-4. The original **app** home page remains available for inspecting the earlier single-gate examples.
+1. In Streamlit's page navigation, open **Cancellation Safety**. The first fictional example records a reservation release while an order is pending cancel and then a later fill. The offline G03 audit marks the unsafe release and points to its evidence events. Compare with **Cancel confirmed with zero fill** and **Broker query unavailable**.
+2. On the same page, choose **Exposure and heat exceed caps** to inspect G04. Gross exposure uses absolute supplied market values; stop-risk heat uses separately supplied risk-to-stop values. Both are percentages of supplied equity and use fictional caps.
+3. Open **Audit Workbench** for fictional quote, account and duplicate checks, and **Trace Inspector** for recorded synthetic gate contradictions. Download evidence reports or synthetic JSON examples.
+4. On each page, review the allowlisted evidence, then optionally request a Muse Spark explanation. The model does not determine or change gate outcomes. Compare its text with the evidence; it can be wrong. The original **app** home page remains available for the earlier single-gate examples.
 
-The checks run without an API key. The optional model request uses `meta-models/muse-spark-open-1026`, `reasoning_effort=low`, and `max_tokens=1024` for a single gate or `1536` for a replay or trace review. It runs in the background. There is no automatic retry; explicit model calls may consume credits. The 30-second request timeout does not guarantee that a worker thread terminates at precisely 30 seconds.
+The checks run without an API key. The optional model request uses `meta-models/muse-spark-open-1026`, `reasoning_effort=low`, and `max_tokens=1024` for a single gate or `1536` for a replay, trace review, or cancellation audit. It runs in the background. There is no automatic retry; explicit model calls may consume credits. The 30-second request timeout does not guarantee that a worker thread terminates at precisely 30 seconds.
 
 The upload pages accept only the documented, closed synthetic JSON formats. Do not upload real accounts, orders, credentials, private information, or real market data: a `synthetic` flag alone cannot prove data is safe. After an explicit model request, only normalized allowlisted facts and checks are sent; the original uploaded file is not sent. Incomplete model output is reported as unavailable. See [the format and safety limitations](docs/SYNTHETIC_FORMATS.md).
 
-**Current limitations:** The replay recalculates fictional checks from one shared quote snapshot; it is not a replay of the participant's existing bot. The trace inspector supports the new synthetic format only, not the pre-event bot's historical trace format. Its consistency checks cannot prove event provenance. Duplicate detection uses an in-memory simulation ledger, not persistent or broker-side idempotency. No broker integration or order execution exists. These features are a development increment, not a finished or production-ready hackathon submission.
+**Current limitations:** The quote replay recalculates fictional checks from one shared quote snapshot; the cancellation page consumes fictional observations and does not control or fix a trading bot. Synthetic protection fields are claims in a case, not proof of a correctly linked live stop. The trace pages support new synthetic formats only, not the pre-event bot's historical trace format. Their checks cannot prove event provenance. Duplicate detection uses an in-memory simulation ledger, not persistent or broker-side idempotency. No broker integration or order execution exists. These features are a development increment, not a finished or production-ready hackathon submission.
 
 ## Run locally on Windows
 
@@ -39,7 +39,7 @@ For model explanations, create a local `.env` from `.env.example` and enter your
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-These tests use fake transports and do not call Baseten. The participant reported successful live explanation responses in the earlier single-gate Windows demo for G01 PASS, G01 BLOCK, and G02 VETO; those responses were shared in conversation. The newer replay and trace inspector pages have not yet been tested live with the provider or in the participant's Windows environment. The separate project's T1–T7 requirements have not been certified here.
+These tests use fake transports and do not call Baseten. The participant reported successful live explanation responses in the earlier single-gate Windows demo for G01 PASS, G01 BLOCK, and G02 VETO; those responses were shared in conversation. The newer replay, trace inspector and cancellation pages have not yet been tested live with the provider or in the participant's Windows environment. The separate project's T1–T7 requirements have not been certified here.
 
 ## Project provenance and dependencies
 
