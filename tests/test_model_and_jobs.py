@@ -59,19 +59,41 @@ class ModelTests(unittest.TestCase):
                 self.assertNotIn('private reasoning', repr(result))
 
     def test_http_failures_are_sanitized_and_redirects_not_followed(self):
+        bodies = []
         class Opener:
             def __init__(self, code):
                 self.code = code
             def open(self, *args, **kwargs):
-                raise error.HTTPError('https://invalid.example', self.code, 'secret detail', {}, io.BytesIO(b'private body'))
+                body = io.BytesIO(b'private body')
+                bodies.append(body)
+                raise error.HTTPError('https://invalid.example', self.code, 'secret detail', {}, body)
         for code, reason in ((401, 'ACCESS_DENIED'), (429, 'RATE_LIMITED'), (500, 'HTTP_ERROR')):
             with self.subTest(code=code), patch('urllib.request.build_opener', return_value=Opener(code)) as builder:
                 result = explain(self.trace, self.finding, 'fake-key')
                 self.assertEqual(result.reason, reason)
                 self.assertNotIn('fake-key', repr(result))
                 self.assertNotIn('private body', repr(result))
+                self.assertTrue(bodies[-1].closed)
                 self.assertIsInstance(builder.call_args.args[0], _NoRedirect)
         self.assertIsNone(_NoRedirect().redirect_request(None, None, None, None, None, 'https://other.example'))
+
+    def test_http_error_cleanup_failure_keeps_sanitized_result(self):
+        body = io.BytesIO(b'private body')
+        problem = error.HTTPError('https://invalid.example', 401, 'secret detail', {}, body)
+
+        class Opener:
+            def open(self, *args, **kwargs):
+                raise problem
+
+        try:
+            with patch.object(problem, 'close', side_effect=OSError('private cleanup')), \
+                 patch('urllib.request.build_opener', return_value=Opener()):
+                result = explain(self.trace, self.finding, 'fake-key')
+            self.assertEqual(result.reason, 'ACCESS_DENIED')
+            self.assertNotIn('private cleanup', repr(result))
+            self.assertNotIn('private body', repr(result))
+        finally:
+            body.close()
 
     def test_timeout_does_not_change_the_gate_or_leak_details(self):
         class Opener:

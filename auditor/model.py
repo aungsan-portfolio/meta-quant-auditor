@@ -62,6 +62,12 @@ def _post(url: str, key: str, payload: dict, timeout: float) -> dict:
             code = 'RATE_LIMITED'
         else:
             code = 'HTTP_ERROR'
+        # HTTPError can own a response stream even though open() raised.
+        # Close it without allowing a cleanup error to leak provider details.
+        try:
+            exc.close()
+        except Exception:
+            pass
         raise TransportError(code) from None
     except (socket.timeout, TimeoutError):
         raise TransportError('TIMEOUT') from None
