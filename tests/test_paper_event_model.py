@@ -67,6 +67,13 @@ class PaperEvidenceTests(unittest.TestCase):
         self.assertEqual((result.status, result.reason), ('UNAVAILABLE', 'INVALID_EVIDENCE'))
         self.assertEqual(calls, [])
 
+    def test_recognized_confidence_stage_can_be_verified_without_a_score(self):
+        ev = build_evidence(event(stage='CONFIDENCE', reason='CONFIDENCE_BELOW_FLOOR'), PAPER_SOURCE)
+        checked = verify_paper_response(ev, response(ev))
+        self.assertEqual([c.status for c in checked.claims], ['EVIDENCE_MATCH'] * 3)
+        self.assertNotIn('score', ev.sent_facts())
+        self.assertNotIn('threshold', ev.sent_facts())
+
     def test_missing_key_and_provider_failure_do_not_modify_evidence(self):
         calls = []
         result = explain_paper_event(self.evidence, PaperSelection(), 'your_baseten_api_key_here',

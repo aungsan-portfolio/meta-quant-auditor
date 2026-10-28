@@ -56,6 +56,13 @@ class LocalPaperObservationTests(unittest.TestCase):
         self.assertEqual(other['reason'], 'OTHER_OR_UNKNOWN')
         self.assertNotIn('SENTINEL', json.dumps(other))
 
+    def test_known_confidence_stage_is_normalized_but_other_raw_stages_are_hidden(self):
+        value = normalize_record(source_record(stage='STAGE_CONFIDENCE', reason_code='CONFIDENCE_BELOW_FLOOR'))
+        self.assertEqual((value['stage'], value['reason']), ('CONFIDENCE', 'CONFIDENCE_BELOW_FLOOR'))
+        other = normalize_record(source_record(stage='PRIVATE_STAGE_SENTINEL'))
+        self.assertEqual(other['stage'], 'OTHER_OR_UNKNOWN')
+        self.assertNotIn('SENTINEL', json.dumps(other))
+
     def test_reason_descriptions_do_not_assert_that_inputs_were_verified(self):
         from auditor.paper_observer import REASONS, REASON_DESCRIPTIONS
         self.assertTrue(REASONS.issubset(REASON_DESCRIPTIONS))
