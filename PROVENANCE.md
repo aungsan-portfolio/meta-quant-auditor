@@ -18,7 +18,7 @@ After the operator tested the earlier observer locally, they shared aggregate re
 
 A subsequent event-window increment adds an explicit, data-minimized Muse Spark request for one selected fictional or operator-declared paper gate record, local checks of three structured label claims, and additional exact-match gate-label mappings including the confidence gate. Only four previewed categorical facts and a fixed instruction may be transmitted after user approval; raw logs and identifiers are excluded. The participant subsequently exercised the path on Windows with the live provider for one fictional and one operator-declared local paper record. Narrative text is never verified by matching scalar fields.
 
-On October 29, the participant supplied a seven-file Risk Cockpit candidate described as event-window work. A separate review reproduced its offline tests and prepared fixes for policy/evidence consistency, missing-input handling and model-request privacy. The candidate's pre-event code origins were not independently established, and the reviewed cockpit path has not been validated with a live provider or in the participant's Windows environment.
+On October 29, the participant supplied a seven-file Risk Cockpit candidate described as event-window work. A separate review reproduced its offline tests and prepared fixes for policy/evidence consistency, missing-input handling and model-request privacy, bringing offline test coverage to 167 tests. The participant subsequently demonstrated the reviewed Cockpit in Windows with 167 passing tests and screenshot evidence showing a live-runtime Muse Spark explanation from Baseten. This is a participant-reported observation and screenshot evidence, not independent broker or provider-network packet verification. Narrative text is never verified by matching scalar fields.
 
 ## Live-test record
 
@@ -26,6 +26,6 @@ The participant reported successful model explanations for a fresh quote (G01 PA
 
 ## Suggested honest demo opening
 
-> My trading bot and early audit ideas existed before the event. This standalone synthetic audit demo, its scenarios, and its Meta model interface were built during the hackathon.
+> My paper-trading bot and an earlier audit scaffold existed before the hackathon. During this event, I built this standalone auditor, its synthetic scenarios, and the Meta Muse Spark explanation interface.
 
 Use this line only after confirming it accurately describes the final submission. Do not present simulated output as a live provider response. Neither this document nor a fresh Git history on its own establishes eligibility; the event organizers determine that under the applicable rules.

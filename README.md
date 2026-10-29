@@ -43,7 +43,7 @@ Deterministic code produces the illustrated findings before an optional Muse Spa
 Plan a concise video within the event's stated time limit. Confirm the current submission requirements in the organizer's rules and disclose pre-existing work accurately. A possible opening is:
 
 ### Suggested opening line (0:00 - 0:10)
-> *"My trading bot and early audit ideas existed before the event. This standalone synthetic audit demo, its scenarios, and its Meta model interface were built during the hackathon."*
+> *"My paper-trading bot and an earlier audit scaffold existed before the hackathon. During this event, I built this standalone auditor, its synthetic scenarios, and the Meta Muse Spark explanation interface."*
 
 ### Suggested 3-minute video roadmap
 1. **0:00 - 0:15 — Opening & Background:** Disclose pre-existing work and the new event work accurately.
@@ -74,7 +74,7 @@ For model explanations, create a local `.env` from `.env.example` and enter your
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-These tests use fake transports and do not call Baseten. The participant reported 150 tests passing on Windows, with three resource-cleanup warnings from mocked HTTP errors in that run. The participant reported earlier single-gate live explanations and subsequently exercised the paper-record model path with one fictional and one operator-declared local record. Windows screenshots also showed the reason summary and the synthetic cancellation follow-up retaining critical history; they did not establish broker truth or a submitted review action. The separate lifecycle structured-claim model request has not yet been confirmed with a live provider on Windows. The separate project's T1–T7 requirements have not been certified here.
+These tests use fake transports and do not call Baseten. The committed tree passes 167 offline tests across Linux (Python 3.12, network sockets disabled) and Windows (Python 3.14). The participant reported earlier single-gate live explanations, exercised the paper-record model path, and demonstrated the synthetic Risk Cockpit receiving a live-runtime explanation on Windows. Narrative model text remains unverified. Broker truth and live trading state are not independently verified. The separate project's T1–T7 requirements have not been certified here.
 
 ## Project provenance and dependencies
 
