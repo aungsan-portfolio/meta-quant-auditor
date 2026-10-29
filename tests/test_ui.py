@@ -42,7 +42,7 @@ class UITests(unittest.TestCase):
         self.assertIn("badge-match", html_out)
         self.assertIn("badge-contradiction", html_out)
         self.assertIn("badge-unverified", html_out)
-        self.assertIn("● MATCH", html_out)
+        self.assertIn("● EVIDENCE_MATCH", html_out)
         self.assertIn("✕ CONTRADICTION", html_out)
         self.assertIn("▲ UNVERIFIED", html_out)
 

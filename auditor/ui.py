@@ -376,7 +376,7 @@ def render_claims_table_html(checked_claims: Any) -> str:
         reason = html.escape(str(getattr(c, "reason", "")))
 
         if status == "EVIDENCE_MATCH":
-            badge = '<span class="badge-match">● MATCH</span>'
+            badge = '<span class="badge-match">● EVIDENCE_MATCH</span>'
         elif status == "CONTRADICTION":
             badge = '<span class="badge-contradiction">✕ CONTRADICTION</span>'
         else:
