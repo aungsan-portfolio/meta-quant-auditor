@@ -69,7 +69,7 @@ with left:
                  'Reason': gate.reason_code, 'Observed': str(gate.observed) if gate.observed is not None else 'unknown',
                  'Limit': str(gate.limit) if gate.limit is not None else 'unknown', 'Unit': gate.unit}
                 for gate in item.gates
-            ], hide_index=True, use_container_width=True)
+            ], hide_index=True, width="stretch")
     st.caption('ELIGIBLE means the fictional checks passed in this replay only. It never authorizes a trade.')
     st.download_button('Download deterministic Markdown report', markdown_report(replay),
                        file_name='synthetic-audit-report.md', mime='text/markdown')
@@ -87,12 +87,12 @@ with right:
     if not usable_key:
         st.info('Set a local BASETEN_API_KEY to request an explanation. Offline replay still works.')
     busy = status in ('PENDING', 'OTHER_PENDING')
-    if st.button('Explain full replay', type='primary', disabled=busy or not usable_key, use_container_width=True):
+    if st.button('Explain full replay', type='primary', disabled=busy or not usable_key, width="stretch"):
         if job.start(replay, selection, api_key):
             st.rerun()
     if busy:
         st.info('The model is working. The replay evidence remains available.')
-        st.button('Refresh replay explanation', use_container_width=True)
+        st.button('Refresh replay explanation', width="stretch")
     elif status == 'DONE' and result is not None:
         if result.status == 'AVAILABLE':
             st.success('Explanation received · verify every claim against the evidence')

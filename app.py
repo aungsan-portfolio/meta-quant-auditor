@@ -96,12 +96,12 @@ with right:
     if not api_key or api_key == 'your_baseten_api_key_here':
         st.info('Set BASETEN_API_KEY in a local .env file to request an explanation. The audit checks work without a key.')
     busy = status in ('PENDING', 'OTHER_PENDING')
-    if st.button('Explain selected event', type='primary', disabled=busy or not api_key or api_key == 'your_baseten_api_key_here', use_container_width=True):
+    if st.button('Explain selected event', type='primary', disabled=busy or not api_key or api_key == 'your_baseten_api_key_here', width="stretch"):
         if job.start(trace, finding, api_key):
             st.rerun()
     if busy:
         st.info('The model request is running. The deterministic gate results remain available above.')
-        st.button('Refresh explanation status', use_container_width=True)
+        st.button('Refresh explanation status', width="stretch")
     elif status == 'DONE' and result is not None:
         if result.status == 'AVAILABLE':
             st.success('Explanation received · review it against the evidence')

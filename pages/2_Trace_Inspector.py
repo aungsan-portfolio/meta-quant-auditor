@@ -66,7 +66,7 @@ left, right = st.columns([1.3, 1], gap='large')
 with left:
     st.subheader('1 · Deterministic consistency checks')
     st.dataframe([{'Event': check.event_id, 'Status': check.status, 'Check': check.code}
-                  for check in review.checks], hide_index=True, use_container_width=True)
+                  for check in review.checks], hide_index=True, width="stretch")
     for item in review.replay.attempts:
         with st.expander(f'{item.attempt_id} · recorded decision {item.decision}'):
             st.dataframe([
@@ -75,7 +75,7 @@ with left:
                  'Observed': str(gate.observed) if gate.observed is not None else 'unknown',
                  'Limit': str(gate.limit) if gate.limit is not None else 'unknown', 'Unit': gate.unit}
                 for gate in item.gates
-            ], hide_index=True, use_container_width=True)
+            ], hide_index=True, width="stretch")
     st.download_button('Download consistency report', review_markdown(review),
                        file_name='synthetic-trace-review.md', mime='text/markdown')
 
@@ -90,12 +90,12 @@ with right:
     if not usable_key:
         st.info('Set a local BASETEN_API_KEY to request an explanation. Offline checks still work.')
     busy = status in ('PENDING', 'OTHER_PENDING')
-    if st.button('Explain trace review', type='primary', disabled=busy or not usable_key, use_container_width=True):
+    if st.button('Explain trace review', type='primary', disabled=busy or not usable_key, width="stretch"):
         if job.start(review, selection, api_key):
             st.rerun()
     if busy:
         st.info('The model is working. Deterministic checks remain visible.')
-        st.button('Refresh trace explanation', use_container_width=True)
+        st.button('Refresh trace explanation', width="stretch")
     elif status == 'DONE' and result is not None:
         if result.status == 'AVAILABLE':
             st.success('Explanation received · compare every claim with the checks')
