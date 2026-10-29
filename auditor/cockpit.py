@@ -1,4 +1,4 @@
-"""Deterministic Autonomous Risk Cockpit — Synthetic S&P 500 risk gate replay simulator.
+"""Deterministic Risk Cockpit — Synthetic S&P 500 risk gate replay simulator.
 
 This module is a standalone synthetic simulation built for audit and replay demonstration.
 It is not connected to a live broker, does not execute real orders, and does not assert

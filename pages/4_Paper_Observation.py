@@ -37,7 +37,7 @@ def show_events(events: list[dict], *, replay: bool) -> None:
     st.caption('Counts are records, not unique trades. A reported fill or submission is not broker verification.')
     st.dataframe([{'Time UTC': e['observed_utc'], 'Symbol': e['symbol'], 'Strategy': e['strategy'],
                    'Gate / stage': e['stage'], 'Reported decision': e['decision'], 'Reason': e['reason']}
-                  for e in events], hide_index=True, use_container_width=True)
+                  for e in events], hide_index=True, width="stretch")
     reasons = Counter(e['reason'] for e in events if e['decision'] in ('REJECT', 'BLOCK', 'VETO'))
     if reasons:
         st.subheader('Reported reasons in this sample')
@@ -45,7 +45,7 @@ def show_events(events: list[dict], *, replay: bool) -> None:
         st.dataframe([{'Reason': reason, 'Records': count,
                        'Meaning': REASON_DESCRIPTIONS.get(reason, 'Unknown label withheld.')}
                       for reason, count in sorted(reasons.items(), key=lambda item: (-item[1], item[0]))],
-                     hide_index=True, use_container_width=True)
+                     hide_index=True, width="stretch")
         st.caption('These count records, not unique trades or losses avoided. The last 200 selected records are only a partial sample.')
     if replay:
         st.caption('All records are fictional examples, not evidence of a real bot action.')
@@ -120,7 +120,7 @@ def show_model_explanation(events: list[dict], *, source_kind: str, source_ready
             return
         st.dataframe([{'Field': claim.field, 'Model claim': claim.claimed,
                        'Reported field': claim.reported, 'Result': claim.status}
-                      for claim in checked.claims], hide_index=True, use_container_width=True)
+                      for claim in checked.claims], hide_index=True, width="stretch")
         st.caption('EVIDENCE_MATCH means an exact label match to this local record, not broker confirmation, '
                    'correctness of the policy, or verification of the whole explanation.')
         if checked.has_contradiction:

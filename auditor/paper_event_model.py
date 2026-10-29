@@ -12,6 +12,7 @@ import json
 from typing import Any, NamedTuple
 
 from .model import Explanation, _post
+from .model_json import unwrap_json_response
 from .paper_observer import DECISIONS, REASONS, STAGES, _event_is_valid
 from .workbench_model import _explain
 
@@ -141,7 +142,8 @@ def verify_paper_response(evidence: PaperEvidence, response_text: str) -> Checke
     if not isinstance(response_text, str) or not response_text.strip() or len(response_text) > MAX_TEXT_CHARS:
         raise PaperEvidenceError('Empty or oversized response')
     try:
-        obj = json.loads(response_text, object_pairs_hook=_pairs, parse_constant=_nonfinite)
+        obj = json.loads(unwrap_json_response(response_text),
+                         object_pairs_hook=_pairs, parse_constant=_nonfinite)
     except (ValueError, TypeError, RecursionError):
         raise PaperEvidenceError('Response is not valid structured JSON') from None
     if not isinstance(obj, dict) or set(obj) != {'claims', 'interpretation'}:

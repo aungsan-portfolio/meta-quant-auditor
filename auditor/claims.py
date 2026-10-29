@@ -12,6 +12,7 @@ from math import isfinite
 import re
 
 from .cancellation import LifecycleError, LifecycleReport, model_evidence
+from .model_json import unwrap_json_response
 
 
 MAX_RESPONSE_CHARS = 12_000
@@ -103,7 +104,8 @@ def verify_claims(report: LifecycleReport, response_text: str) -> ClaimsReport:
     if not isinstance(response_text, str) or not response_text.strip() or len(response_text) > MAX_RESPONSE_CHARS:
         raise ClaimsError('The structured response is empty or too large.')
     try:
-        data = json.loads(response_text, object_pairs_hook=_pairs, parse_constant=_nonfinite)
+        data = json.loads(unwrap_json_response(response_text),
+                          object_pairs_hook=_pairs, parse_constant=_nonfinite)
     except ClaimsError:
         raise
     except (ValueError, TypeError, RecursionError):

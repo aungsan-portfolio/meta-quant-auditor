@@ -1,4 +1,4 @@
-"""Streamlit page for the Autonomous Risk Cockpit — Deterministic Gate Replay."""
+"""Streamlit page for the Synthetic Risk Cockpit — Deterministic Gate Replay."""
 from __future__ import annotations
 
 import json
@@ -23,8 +23,8 @@ from auditor.jobs import ExplanationJob
 ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env", override=False)
 
-st.set_page_config(page_title="Autonomous Risk Cockpit", page_icon="🛡️", layout="wide")
-st.title("Autonomous Risk Cockpit")
+st.set_page_config(page_title="Synthetic Risk Cockpit", page_icon="🛡️", layout="wide")
+st.title("Synthetic Risk Cockpit")
 st.caption("Deterministic pre-trade risk gate evaluation with dynamic threshold recalculation.")
 st.info("Synthetic replay simulation only. No live broker connection, real order execution, or dollar savings claimed.")
 st.caption("This demo checks four fictional inputs: spread, chop score, projected exposure and confidence. "
@@ -143,7 +143,7 @@ with left:
                 for t, i in zip(session.tickers, session.interventions)
             ],
             hide_index=True,
-            use_container_width=True,
+            width="stretch",
         )
 
 with right:
@@ -182,7 +182,7 @@ with right:
         "Explain synthetic session with Muse Spark",
         type="primary",
         disabled=busy or not consent or not api_key or api_key == "your_baseten_api_key_here",
-        use_container_width=True,
+        width="stretch",
     ):
         if consent and job.start(session, selection, api_key):
             st.rerun()

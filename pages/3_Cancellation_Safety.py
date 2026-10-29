@@ -120,7 +120,7 @@ if missing.status == 'NEEDS_INPUT':
             next_coverage = st.number_input('Fictional protection coverage quantity', min_value=0.0, value=0.0, step=1.0)
             coverage_unknown = st.checkbox('Coverage quantity is unknown')
             next_fields = {'status': next_status, 'coverage_qty': None if coverage_unknown else next_coverage}
-        add_followup = st.form_submit_button('Add fictional follow-up and recheck', use_container_width=True)
+        add_followup = st.form_submit_button('Add fictional follow-up and recheck', width="stretch")
     if add_followup:
         try:
             st.session_state.cancellation_followups[base_report.trace_id] = append_followup(report, next_fields)
@@ -169,12 +169,12 @@ with left:
          'Position': str(event.position_qty) if event.position_qty is not None else 'unknown / n/a',
          'Coverage': str(event.coverage_qty) if event.coverage_qty is not None else 'unknown / n/a'}
         for event in report.events
-    ], hide_index=True, use_container_width=True)
+    ], hide_index=True, width="stretch")
     st.subheader('G03 · Deterministic findings')
     if report.findings:
         st.dataframe([{'Event': f.event_id, 'Severity': f.severity, 'Finding': f.code,
                        'Evidence': ', '.join(f.evidence_refs)} for f in report.findings],
-                     hide_index=True, use_container_width=True)
+                     hide_index=True, width="stretch")
     else:
         st.caption('No release or anomaly was recorded in this case.')
     st.caption('All timestamps and protection observations are synthetic claims. Broker and local clock alignment is assumed, not verified.')
@@ -207,12 +207,12 @@ with right:
     if not usable:
         st.info('Set a local BASETEN_API_KEY to request an explanation. Offline audit still works.')
     busy = status in ('PENDING', 'OTHER_PENDING')
-    if st.button('Explain cancellation audit', type='primary', disabled=busy or not usable, use_container_width=True):
+    if st.button('Explain cancellation audit', type='primary', disabled=busy or not usable, width="stretch"):
         if job.start(report, selection, api_key):
             st.rerun()
     if busy:
         st.info('The model is working. Deterministic checks remain visible.')
-        st.button('Refresh cancellation explanation', use_container_width=True)
+        st.button('Refresh cancellation explanation', width="stretch")
     elif status == 'DONE' and result is not None:
         if result.status == 'AVAILABLE':
             st.success('Explanation received · compare its claims with the evidence')
@@ -237,10 +237,10 @@ claims_selection = ClaimsSelection()
 claims_status, claims_result = claims_job.state(report, claims_selection)
 claims_busy = claims_status in ('PENDING', 'OTHER_PENDING')
 sample_button, model_button = st.columns(2)
-if sample_button.button('Try fictional claims · no model', use_container_width=True):
+if sample_button.button('Try fictional claims · no model', width="stretch"):
     st.session_state.cancellation_claims_mode[report.trace_id] = 'SAMPLE'
 if model_button.button('Ask Muse Spark for structured claims', disabled=claims_busy or not usable,
-                       use_container_width=True):
+                       width="stretch"):
     if claims_job.start(report, claims_selection, api_key):
         st.session_state.cancellation_claims_mode[report.trace_id] = 'MODEL'
         st.rerun()
@@ -275,7 +275,7 @@ if claims_text is not None:
                        'Claimed': str(c.claimed),
                        'Record': 'unknown / n.a.' if c.evidence is None else str(c.evidence),
                        'Result': c.status, 'Reason': c.reason} for c in checked.claims],
-                     hide_index=True, use_container_width=True)
+                     hide_index=True, width="stretch")
         st.caption('EVIDENCE_MATCH means an exact match to a supplied synthetic field, not proof of an actual event.')
         if checked.interpretation:
             st.warning('The following interpretation is unverified and is not part of the field checks.')
@@ -295,8 +295,8 @@ with st.form(f'cancellation_review_{memo_digest}'):
     evidence_ack = st.checkbox('I compared the checklist, recorded findings, and event evidence for this case.')
     scope_ack = st.checkbox('I understand this is fictional, AI prose is unverified, and this review does not authorize a trade.')
     review_button, flag_button = st.columns(2)
-    reviewed = review_button.form_submit_button('Mark audit memo reviewed', use_container_width=True)
-    flagged = flag_button.form_submit_button('Flag for manual review', use_container_width=True)
+    reviewed = review_button.form_submit_button('Mark audit memo reviewed', width="stretch")
+    flagged = flag_button.form_submit_button('Flag for manual review', width="stretch")
 
 if reviewed or flagged:
     try:

@@ -1,4 +1,4 @@
-"""Meta Muse Spark Open model adapter for the Autonomous Risk Cockpit.
+"""Meta Muse Spark Open model adapter for the Synthetic Risk Cockpit.
 
 Uses Meta's approved hackathon model (meta-models/muse-spark-open-1026 on Baseten).
 Transmits generated categorical labels and synthetic numeric metrics.
@@ -18,14 +18,15 @@ class CockpitSelection(NamedTuple):
 
 
 SYSTEM = (
-    "You are the Meta AI Autonomous Risk Cockpit Auditor. "
-    "Explain the supplied synthetic risk simulation session in concise, authoritative executive English. "
+    "You are a Meta AI explanation assistant for the Synthetic Risk Cockpit. "
+    "Explain the supplied synthetic risk simulation session in concise, factual English. "
     "1. State how many candidates passed the four illustrative synthetic checks and how many lack required inputs. "
-    "2. Specifically highlight autonomous gate blocks (such as spread excess, chop filter, or gross exposure cap breach) "
+    "2. Specifically highlight deterministic gate blocks (such as spread excess, chop filter, or gross exposure cap breach) "
     "and cite the observed vs limit metrics. Do not assert unverified dollar savings or make trading recommendations. "
     "3. Describe only checks present in the evidence; do not claim overall eligibility or other safeguards. "
     "4. State clearly that all events and metrics shown are synthetic replay data with no live broker connection or order execution. "
-    "Use only the provided evidence; do not invent tickers or unrecorded events."
+    "Use only the provided evidence; do not invent tickers or unrecorded events. "
+    "Your interpretation is unverified and does not control the gate outcomes."
 )
 
 
