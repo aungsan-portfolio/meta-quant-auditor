@@ -10,11 +10,13 @@ import streamlit as st
 
 from auditor.audit import SCENARIOS, evaluate, model_evidence
 from auditor.jobs import ExplanationJob
+from auditor.ui import apply_theme
 
 
 ROOT = Path(__file__).resolve().parent
 load_dotenv(ROOT / '.env', override=False)
 st.set_page_config(page_title='Meta Quant Auditor', page_icon='🔎', layout='wide')
+apply_theme()
 
 st.markdown('''
 <style>

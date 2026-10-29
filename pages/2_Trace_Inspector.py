@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import streamlit as st
 
 from auditor.jobs import ExplanationJob
+from auditor.ui import apply_theme
 from auditor.trace_review import review_evidence, review_markdown, review_trace
 from auditor.workbench import CaseError, parse_case, replay_case, report_evidence, sample_cases
 from auditor.workbench_model import WholeReplay, explain_recorded_review

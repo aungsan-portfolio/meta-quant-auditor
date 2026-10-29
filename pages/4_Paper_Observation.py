@@ -13,12 +13,14 @@ from auditor.paper_event_model import (PAPER_SOURCE, SYNTHETIC_SOURCE, SYSTEM, P
                                        verify_paper_response)
 from auditor.paper_observer import (ObservationError, REASON_DESCRIPTIONS, poll_status,
                                     read_snapshot, synthetic_events)
+from auditor.ui import apply_theme
 
 
 ROOT = Path(__file__).resolve().parent.parent
 SNAPSHOT = ROOT / 'data' / 'paper_gate_observations.json'
 load_dotenv(ROOT / '.env', override=False)
 st.set_page_config(page_title='Paper Event Cockpit', page_icon='📊', layout='wide')
+apply_theme()
 st.title('Paper event cockpit')
 st.caption('Observe a gate timeline. This page cannot place, cancel, or modify orders.')
 mode = st.radio('Data source', ['Fictional replay', 'Local sanitized paper events'], horizontal=True)

@@ -15,11 +15,13 @@ from auditor.claims_model import ClaimsSelection, generate_claims
 from auditor.followup import FollowupError, append_followup, evidence_request
 from auditor.jobs import ExplanationJob
 from auditor.review import ReviewError, build_memo, record_review, review_download, validate_memo
+from auditor.ui import apply_theme, render_claims_table_html, render_lifecycle_timeline_html
 
 
 ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / '.env', override=False)
 st.set_page_config(page_title='Cancellation Safety Audit', page_icon='🔎', layout='wide')
+apply_theme()
 st.title('Cancellation safety audit')
 st.caption('Review a fictional cancellation timeline and separately inspect synthetic portfolio limits.')
 st.info('Synthetic cases only. This read-only demo does not connect to a broker, release reservations, or place orders.')
@@ -161,15 +163,17 @@ else:
 left, right = st.columns([1.3, 1], gap='large')
 with left:
     st.subheader('1 · Lifecycle evidence')
-    st.dataframe([
-        {'Observed UTC': event.observed_utc, 'Broker event UTC': event.broker_event_utc or 'unknown / n/a',
-         'Event': event.event_id, 'Type': event.kind,
-         'Status': event.status if event.status is not None else '—',
-         'Fill': str(event.cumulative_fill) if event.cumulative_fill is not None else 'unknown / n/a',
-         'Position': str(event.position_qty) if event.position_qty is not None else 'unknown / n/a',
-         'Coverage': str(event.coverage_qty) if event.coverage_qty is not None else 'unknown / n/a'}
-        for event in report.events
-    ], hide_index=True, width="stretch")
+    st.markdown(render_lifecycle_timeline_html(report), unsafe_allow_html=True)
+    with st.expander('View tabular event records', expanded=False):
+        st.dataframe([
+            {'Observed UTC': event.observed_utc, 'Broker event UTC': event.broker_event_utc or 'unknown / n/a',
+             'Event': event.event_id, 'Type': event.kind,
+             'Status': event.status if event.status is not None else '—',
+             'Fill': str(event.cumulative_fill) if event.cumulative_fill is not None else 'unknown / n/a',
+             'Position': str(event.position_qty) if event.position_qty is not None else 'unknown / n/a',
+             'Coverage': str(event.coverage_qty) if event.coverage_qty is not None else 'unknown / n/a'}
+            for event in report.events
+        ], hide_index=True, width="stretch")
     st.subheader('G03 · Deterministic findings')
     if report.findings:
         st.dataframe([{'Event': f.event_id, 'Severity': f.severity, 'Finding': f.code,
@@ -271,15 +275,23 @@ if claims_text is not None:
     except ClaimsError as exc:
         st.warning(f'Claims unavailable: {exc} No claim has been verified.')
     else:
-        st.dataframe([{'Claim': c.index, 'Reference': f'{c.event_id or c.scope}.{c.field}',
-                       'Claimed': str(c.claimed),
-                       'Record': 'unknown / n.a.' if c.evidence is None else str(c.evidence),
-                       'Result': c.status, 'Reason': c.reason} for c in checked.claims],
-                     hide_index=True, width="stretch")
+        st.markdown(render_claims_table_html(checked), unsafe_allow_html=True)
+        with st.expander('View raw claims dataframe', expanded=False):
+            st.dataframe([{'Claim': c.index, 'Reference': f'{c.event_id or c.scope}.{c.field}',
+                           'Claimed': str(c.claimed),
+                           'Record': 'unknown / n.a.' if c.evidence is None else str(c.evidence),
+                           'Result': c.status, 'Reason': c.reason} for c in checked.claims],
+                         hide_index=True, width="stretch")
         st.caption('EVIDENCE_MATCH means an exact match to a supplied synthetic field, not proof of an actual event.')
         if checked.interpretation:
             st.warning('The following interpretation is unverified and is not part of the field checks.')
             st.text(checked.interpretation)
+
+with st.expander('🛡️ Audit scope & synthetic verification boundaries', expanded=False):
+    st.caption('All timestamps and protection observations are synthetic claims. Broker and local clock alignment is assumed, not verified.')
+    st.caption('G03 preserves historical critical findings even if a later current gate passes. G04 measures are separate.')
+    st.caption('A single gate PASS never authorizes a trade or order placement.')
+    st.caption('Only listed scalar claims are checked against this fictional record. Narrative interpretations and real-world truth are not verified.')
 
 st.divider()
 st.subheader('3 · Human review of the deterministic memo')
