@@ -11,11 +11,13 @@ import streamlit as st
 from auditor.jobs import ExplanationJob
 from auditor.workbench import CaseError, markdown_report, parse_case, replay_case, report_evidence, sample_cases
 from auditor.workbench_model import WholeReplay, explain_replay
+from auditor.ui import apply_theme
 
 
 ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / '.env', override=False)
 st.set_page_config(page_title='Decision Audit Workbench', page_icon='🔎', layout='wide')
+apply_theme()
 st.title('Decision audit workbench')
 st.caption('Replay a synthetic paper-simulation case, inspect each gate, then export the evidence.')
 st.info('Synthetic input only. No broker, real market data, trading signal, or order execution is supported.')

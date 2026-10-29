@@ -18,12 +18,14 @@ from auditor.cockpit import (
 )
 from auditor.cockpit_model import CockpitSelection, SYSTEM, explain_cockpit
 from auditor.jobs import ExplanationJob
+from auditor.ui import apply_theme
 
 
 ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env", override=False)
 
 st.set_page_config(page_title="Synthetic Risk Cockpit", page_icon="🛡️", layout="wide")
+apply_theme()
 st.title("Synthetic Risk Cockpit")
 st.caption("Deterministic pre-trade risk gate evaluation with dynamic threshold recalculation.")
 st.info("Synthetic replay simulation only. No live broker connection, real order execution, or dollar savings claimed.")
