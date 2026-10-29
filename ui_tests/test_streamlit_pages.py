@@ -1,5 +1,6 @@
 """Real Streamlit script/widget checks; no browser rendering or provider calls."""
 import json
+from ipaddress import ip_address
 import os
 from pathlib import Path
 import socket
@@ -13,6 +14,19 @@ from auditor.jobs import ExplanationJob
 
 
 ROOT = Path(__file__).resolve().parents[1]
+_SOCKET_CONNECT = socket.socket.connect
+
+
+def loopback_only_connect(sock, address):
+    """Windows asyncio creates its socketpair over local TCP, not a provider."""
+    try:
+        local = (sock.family in (socket.AF_INET, socket.AF_INET6)
+                 and isinstance(address, tuple) and ip_address(address[0]).is_loopback)
+    except (ValueError, TypeError, IndexError):
+        local = False
+    if not local:
+        raise AssertionError('UI tests must not connect to external services')
+    return _SOCKET_CONNECT(sock, address)
 
 
 class StreamlitPageTests(unittest.TestCase):
@@ -21,8 +35,7 @@ class StreamlitPageTests(unittest.TestCase):
             'BASETEN_API_KEY': '', 'PYTHON_DOTENV_DISABLED': '1',
             'STREAMLIT_BROWSER_GATHER_USAGE_STATS': 'false',
         }))
-        self.enterContext(mock.patch.object(socket.socket, 'connect',
-            side_effect=AssertionError('UI tests must not connect to a provider')))
+        self.enterContext(mock.patch.object(socket.socket, 'connect', new=loopback_only_connect))
         self.enterContext(mock.patch.object(socket, 'create_connection',
             side_effect=AssertionError('UI tests must not connect to a provider')))
 
@@ -52,6 +65,23 @@ class StreamlitPageTests(unittest.TestCase):
     @staticmethod
     def button(app, label):
         return next(item for item in app.button if item.label == label)
+
+    def test_network_guard_allows_loopback_and_rejects_external_addresses(self):
+        with socket.socket() as listener, socket.socket() as client:
+            listener.bind(('127.0.0.1', 0))
+            listener.listen(1)
+            listener.settimeout(2)
+            client.settimeout(2)
+            client.connect(listener.getsockname())
+            accepted, _ = listener.accept()
+            accepted.close()
+        with socket.socket() as probe:
+            for address in (('192.0.2.1', 443), ('inference.baseten.co', 443)):
+                with self.subTest(address=address):
+                    with self.assertRaisesRegex(AssertionError, 'external services'):
+                        probe.connect(address)
+        with self.assertRaises(AssertionError):
+            socket.create_connection(('inference.baseten.co', 443))
 
     def test_home_quote_scenarios_work_without_an_api_key(self):
         app = self.open_page()

@@ -80,7 +80,7 @@ On macOS/Linux, use `.venv/bin/python` in place of the Windows interpreter path.
 | Evidence | Scope and limits |
 | --- | --- |
 | 178 unit tests on the patched source | Passed in the local Linux/Python 3.12.14 review, including 11 response-envelope regressions. Tests use fake provider transports. |
-| 8 real Streamlit AppTest checks | Exercise the entrypoint and all five pages, built-in cases, offline claims, follow-ups, cockpit recalculation, and consent reset with outbound connections blocked. These are framework/widget checks, not browser visual tests or provider calls. |
+| 8 real Streamlit AppTest checks and 1 network-guard regression | Exercise the entrypoint and all five pages, built-in cases, offline claims, follow-ups, cockpit recalculation, and consent reset with external connections blocked. Local loopback communication needed by Windows asyncio remains available. These are framework/widget checks, not browser visual tests or provider calls. |
 | Earlier Windows evidence | The prior source passed 167 offline tests on Windows/Python 3.14. My earlier live checks covered single-gate and reported-paper-event explanations; a Windows cockpit screenshot also showed a live-runtime explanation. These limited observations do not validate every model path or the new dependency pins on Windows. |
 | GitHub Actions | The workflow targets Linux and Windows on Python 3.11 and 3.14. Remote run results are available through the workflow link above; local checks are separate evidence. |
 

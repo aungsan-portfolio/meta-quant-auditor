@@ -28,6 +28,8 @@ The review installed and pinned Streamlit 1.66.1 and python-dotenv 1.2.4 in a se
 
 The participant also shared a Cerebral Valley APP reply listing the general disclosure, repository, Meta-only runtime and three-minute-video rules, and saying organizers would answer the remaining question in the same thread. The record still contains no final project-specific use-case ruling. The README retains that distinction while leading with the prototype's intended user and review workflow.
 
+The cross-platform CI review also refined the UI-test network guard: literal-loopback TCP connections needed by Windows asyncio are allowed, while external addresses and provider connection helpers remain blocked. A ninth UI-suite check exercises local TCP and verifies that external addresses are rejected. This is test-harness behavior; it does not change the application gates or enable automatic model requests.
+
 ## Live-test record
 
 The participant reported successful model explanations for a fresh quote (G01 PASS), a stale quote (G01 BLOCK), and a wide spread (G02 VETO) in the original single-gate Windows demo. The participant also reported 150 offline tests passing on Windows, with three mocked HTTP-error resource-cleanup warnings, and exercised the synthetic cancellation follow-up while critical history remained visible. Screenshots did not show a submitted review action; the separate lifecycle structured-claim model request has not been confirmed with a live provider on Windows. These are participant-reported observations, not independent broker or source verification. The project does not include live logs or credentials; offline tests use fake transports.
