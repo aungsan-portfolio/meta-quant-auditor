@@ -8,6 +8,20 @@ Meta Quant Auditor helps paper-trading developers and reviewers investigate why 
 
 **Track:** Indie Developer candidate. **Theme:** Build for Your World.
 
+## Why I built this
+
+I run separate day-trading and swing-trading bots on paper accounts and review their execution logs. That work involves quote freshness, partial fills, cancellation state, and broker reconciliation. A gate's PASS or BLOCK alone does not explain which observations support it or whether a later recovery hides an earlier unsafe sequence.
+
+Meta Quant Auditor turns those domain problems into fictional, reproducible audit cases. The cancellation example asks a concrete question: was a reservation released before cancellation was confirmed, and what happened when a fill arrived later? The public examples are newly fabricated; they do not expose my private bot's implementation or records.
+
+## How this differs from a generic rule checker
+
+- **Lifecycle evidence:** G03 follows pending cancellation, reservation release, and a late fill, and identifies a release that occurred before a terminal order observation.
+- **History survives recovery:** A later current PASS does not remove an earlier CRITICAL finding. The case still requires review.
+- **Missing evidence is explicit:** Missing lifecycle observations produce `NEEDS_INPUT`; missing required chop or projected-exposure inputs in the cockpit produce `BLOCKED_INCOMPLETE`. Unknown evidence is not silently treated as a pass.
+- **Model claims are compared with evidence:** Muse Spark returns structured claims. Local code marks supported scalar and finding-code claims `EVIDENCE_MATCH`, `CONTRADICTION`, or `UNVERIFIED`. The model cannot change the independently calculated gate outcome, and its narrative remains unverified.
+- **Requests are deliberate:** Model calls require an explicit user action and send bounded, previewable facts plus a fixed instruction. They do not run automatically.
+
 ## Start with one case
 
 Run the app and open **Cancellation Safety**:
@@ -18,6 +32,8 @@ Run the app and open **Cancellation Safety**:
 4. For an actual Meta response, review the synthetic evidence and fixed instruction, then explicitly click **Ask Muse Spark for structured claims**. Local code compares supported scalar fields and recorded finding codes. The accompanying free-form interpretation remains unverified.
 
 This lets a reviewer distinguish a claim that matches a supplied field, a contradiction, and a claim for which evidence is missing. Matching fictional fields does not establish real-world truth or verify the meaning of an entire explanation.
+
+The [demo script](docs/DEMO_SCRIPT.md) covers the prior-work disclosure, domain experience, lifecycle differences, a live Meta request, and the synthetic cockpit. It targets 2:50; the recorded video must be 3:00 or less.
 
 ## What Meta adds
 
@@ -82,9 +98,10 @@ On macOS/Linux, use `.venv/bin/python` in place of the Windows interpreter path.
 | 178 unit tests on the patched source | Passed in the local Linux/Python 3.12.14 review, including 11 response-envelope regressions. Tests use fake provider transports. |
 | 8 real Streamlit AppTest checks and 1 network-guard regression | Exercise the entrypoint and all five pages, built-in cases, offline claims, follow-ups, cockpit recalculation, and consent reset with external connections blocked. Local loopback communication needed by Windows asyncio remains available. These are framework/widget checks, not browser visual tests or provider calls. |
 | Earlier Windows evidence | The prior source passed 167 offline tests on Windows/Python 3.14. My earlier live checks covered single-gate and reported-paper-event explanations; a Windows cockpit screenshot also showed a live-runtime explanation. These limited observations do not validate every model path or the new dependency pins on Windows. |
+| October 29 Windows structured-claims screenshot | Cancellation Safety displayed a response received from Muse Spark for the built-in pending-cancel/early-release/late-fill case. All seven displayed claims were `EVIDENCE_MATCH`, the current gate was `BLOCK`, and the narrative was labeled unverified. This documents one UI observation, not an independent provider-network capture or comprehensive model-path validation. |
 | GitHub Actions | The workflow targets Linux and Windows on Python 3.11 and 3.14. Remote run results are available through the workflow link above; local checks are separate evidence. |
 
-The available Windows record does not establish live-provider validation of the separate lifecycle structured-claim, Workbench replay, Trace Inspector, or cancellation narrative paths. Offline tests do not certify broker behavior or production safety.
+The available Windows record does not establish live-provider validation of the separate Workbench replay, Trace Inspector, or cancellation narrative paths. Offline tests do not certify broker behavior or production safety.
 
 ## Data boundaries and limitations
 
@@ -112,6 +129,8 @@ My paper-trading bot and an earlier audit scaffold existed before the hackathon 
 
 The normalized event format, allowlist mappings, adapter, diagnostic implementation, UI, and tests were written during the event. The earlier bot's parser, strategy/execution implementation, private records, credentials, and Git history are not included. The built-in synthetic demo runs independently of that bot.
 
-Cerebral Valley's general reply specifies disclosure, event-built demo features, a fresh public runnable repository, Meta-only runtime models, and a video of 3:00 or less. I have asked the organizers for a project-specific use-case ruling and am waiting for their response.
+The organizers confirmed that Indie entries may build on pre-existing work when the submitted repository is fresh (created October 26, 2026 or later), contains only event-window work, runs independently from its setup instructions, and the video opens with a pre-existing versus new disclosure. Pre-existing reference material remains labeled above; the earlier bot's code and Git history remain outside this repository. GitHub records this public repository's creation as October 27, 2026 at 13:05:07 UTC.
+
+The organizers also requested that both the README and demo explain my domain expertise and how the project differs from a generic checker, and that the demo include a live Meta runtime call. The sections above and the linked demo script cover those requirements. The general requirements for Meta-only runtime models, synthetic demo data, event-built demo functionality, and a video of 3:00 or less still apply.
 
 Dependencies are [Streamlit](https://github.com/streamlit/streamlit) and [python-dotenv](https://github.com/theskumar/python-dotenv), plus Python's standard library. Their source is not vendored. This repository uses the [MIT License](LICENSE); dependency licenses and event rules still apply.
