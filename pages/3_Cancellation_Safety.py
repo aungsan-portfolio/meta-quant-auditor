@@ -90,7 +90,6 @@ g03.metric('G03 · Cancellation', 'CRITICAL HISTORY' if history_count else c_che
 g03.caption(f"Current gate: {c_check['current_status']} · Critical history: {history_count}")
 g04.metric('G04 · Portfolio limits', f"{x_check['gross_status']} / {x_check['heat_status']}")
 g04.caption('Gross exposure / supplied stop-risk heat')
-st.caption('G03 preserves historical critical findings even if a later current gate passes. G04 measures are separate.')
 
 with st.expander('Audit workflow · Plan → Act → Observe'):
     st.write('**Plan:** Read the selected synthetic case and apply the coded quote, cancellation and portfolio checks.')
@@ -181,7 +180,6 @@ with left:
                      hide_index=True, width="stretch")
     else:
         st.caption('No release or anomaly was recorded in this case.')
-    st.caption('All timestamps and protection observations are synthetic claims. Broker and local clock alignment is assumed, not verified.')
     st.download_button('Download deterministic audit report', markdown_report(report),
                        file_name='synthetic-cancellation-audit.md', mime='text/markdown')
 

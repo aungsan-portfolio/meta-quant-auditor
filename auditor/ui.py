@@ -279,6 +279,16 @@ CUSTOM_CSS = """
 """
 
 
+def _compact_html(markup: str) -> str:
+    """Join lines without indentation or blank lines.
+
+    Streamlit renders st.markdown through CommonMark: a blank line ends a raw HTML
+    block, and a following line indented four or more spaces becomes a literal
+    code block. Compacting keeps each component one HTML block.
+    """
+    return "".join(line.strip() for line in markup.splitlines())
+
+
 def apply_theme() -> None:
     """Inject unified custom styling into the active Streamlit session."""
     try:
@@ -308,7 +318,8 @@ def render_lifecycle_timeline_html(report: Any) -> str:
     items_html = []
     events_list = list(report.events)
     for idx, event in enumerate(events_list):
-        eid = html.escape(str(getattr(event, "event_id", f"E-{idx:03d}")))
+        raw_eid = str(getattr(event, "event_id", f"E-{idx:03d}"))
+        eid = html.escape(raw_eid)
         observed = html.escape(str(getattr(event, "observed_utc", "")).split("T")[-1].replace("Z", ""))
         kind = html.escape(str(getattr(event, "kind", "EVENT")))
         status = html.escape(str(getattr(event, "status", "—") or "—"))
@@ -326,12 +337,12 @@ def render_lifecycle_timeline_html(report: Any) -> str:
             details.append(f"Cov: {cov}")
         details_str = html.escape(" · ".join(details) if details else "None")
 
-        is_critical = eid in critical_events
+        is_critical = raw_eid in critical_events
         node_class = "timeline-node critical" if is_critical else "timeline-node"
 
         alert_badge = ""
         if is_critical:
-            reason = critical_events[eid].replace("_", " ")
+            reason = critical_events[raw_eid].replace("_", " ")
             alert_badge = f'<div class="node-alert">⚠️ {html.escape(reason)}</div>'
 
         node_html = f"""
@@ -352,7 +363,7 @@ def render_lifecycle_timeline_html(report: Any) -> str:
         if idx < len(events_list) - 1:
             items_html.append('<div class="timeline-arrow">→</div>')
 
-    return f'<div class="timeline-container">{"".join(items_html)}</div>'
+    return _compact_html(f'<div class="timeline-container">{"".join(items_html)}</div>')
 
 
 def render_claims_table_html(checked_claims: Any) -> str:
@@ -394,7 +405,7 @@ def render_claims_table_html(checked_claims: Any) -> str:
         """
         rows_html.append(row)
 
-    return f"""
+    return _compact_html(f"""
     <div class="claims-table-wrapper">
       <table class="claims-table">
         <thead>
@@ -402,7 +413,7 @@ def render_claims_table_html(checked_claims: Any) -> str:
             <th>#</th>
             <th>Field Reference</th>
             <th>Model Claim</th>
-            <th>Ground Truth Record</th>
+            <th>Synthetic Record</th>
             <th>Verification</th>
             <th>Reason Code</th>
           </tr>
@@ -412,4 +423,4 @@ def render_claims_table_html(checked_claims: Any) -> str:
         </tbody>
       </table>
     </div>
-    """
+    """)

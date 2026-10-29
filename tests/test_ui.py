@@ -54,6 +54,37 @@ class UITests(unittest.TestCase):
         # Should execute safely in any python environment
         apply_theme()
 
+    def test_components_are_single_line_html_for_markdown(self):
+        # st.markdown uses CommonMark: a blank line ends a raw HTML block and a
+        # following line indented by four spaces is shown as literal code.
+        checked = verify_claims(self.report, example_claims(self.report))
+        for html_out in (render_lifecycle_timeline_html(self.report), render_claims_table_html(checked)):
+            with self.subTest(component=html_out[:30]):
+                self.assertTrue(html_out.startswith('<div class="'))
+                self.assertNotIn("\n", html_out)
+
+    def test_record_column_is_not_labeled_ground_truth(self):
+        checked = verify_claims(self.report, example_claims(self.report))
+        html_out = render_claims_table_html(checked)
+        self.assertIn("<th>Synthetic Record</th>", html_out)
+        self.assertNotIn("Ground Truth", html_out)
+
+    def test_untrusted_values_are_escaped(self):
+        from types import SimpleNamespace
+        payload = '<img src=x onerror=alert(1)>'
+        event = SimpleNamespace(event_id=payload, observed_utc=payload, kind=payload, status=payload,
+                                cumulative_fill=None, position_qty=None, coverage_qty=None)
+        finding = SimpleNamespace(severity="CRITICAL", code=payload, evidence_refs=(payload,), event_id=payload)
+        timeline = render_lifecycle_timeline_html(SimpleNamespace(events=(event,), findings=(finding,)))
+        claim = SimpleNamespace(index=1, scope=payload, event_id=payload, field=payload, claimed=payload,
+                                evidence=payload, status="CONTRADICTION", reason=payload)
+        table = render_claims_table_html(SimpleNamespace(claims=(claim,)))
+        for html_out in (timeline, table):
+            with self.subTest(component=html_out[:30]):
+                self.assertNotIn("<img", html_out)
+                self.assertIn("&lt;img", html_out)
+        self.assertIn("timeline-node critical", timeline)
+
 
 if __name__ == "__main__":
     unittest.main()

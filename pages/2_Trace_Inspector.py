@@ -18,6 +18,7 @@ from auditor.workbench_model import WholeReplay, explain_recorded_review
 ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / '.env', override=False)
 st.set_page_config(page_title='Recorded Trace Inspector', page_icon='🔎', layout='wide')
+apply_theme()
 st.title('Recorded trace inspector')
 st.caption('Check whether recorded synthetic gate outcomes and decisions agree with their evidence.')
 st.info('Only this project’s synthetic trace format is accepted. This does not prove an event occurred and does not connect to a trading bot.')
