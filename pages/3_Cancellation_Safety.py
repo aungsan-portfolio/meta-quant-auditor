@@ -159,10 +159,11 @@ else:
     second_quote.caption(f'Cap: {spread_cap} · {q.spread_status} · {q.spread_reason}')
     st.caption(f'Fictional bid: {report.source_trace.quote.bid} · ask: {report.source_trace.quote.ask} · session: {q.session}')
 
+st.subheader('1 · Lifecycle evidence')
+st.markdown(render_lifecycle_timeline_html(report), unsafe_allow_html=True)
+
 left, right = st.columns([1.3, 1], gap='large')
 with left:
-    st.subheader('1 · Lifecycle evidence')
-    st.markdown(render_lifecycle_timeline_html(report), unsafe_allow_html=True)
     with st.expander('View tabular event records', expanded=False):
         st.dataframe([
             {'Observed UTC': event.observed_utc, 'Broker event UTC': event.broker_event_utc or 'unknown / n/a',

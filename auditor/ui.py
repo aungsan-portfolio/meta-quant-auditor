@@ -89,14 +89,15 @@ CUSTOM_CSS = """
   .timeline-container {
     display: flex;
     align-items: stretch;
-    gap: 10px;
-    overflow-x: auto;
-    padding: 12px 4px 18px 4px;
-    margin: 10px 0 16px 0;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 0 16px 0;
+    margin: 8px 0 16px 0;
   }
   .timeline-node {
-    flex: 1 0 190px;
-    max-width: 240px;
+    flex: 1 1 180px;
+    min-width: 170px;
+    max-width: 230px;
     background: #111d28;
     border: 1px solid #233546;
     border-radius: 10px;
@@ -180,6 +181,11 @@ CUSTOM_CSS = """
     display: flex;
     align-items: center;
     gap: 4px;
+  }
+  .node-alert.warning {
+    background: rgba(245, 158, 11, 0.22) !important;
+    border: 1px solid #f59e0b !important;
+    color: #fde047 !important;
   }
 
   /* Claims Table */
@@ -304,16 +310,21 @@ def render_lifecycle_timeline_html(report: Any) -> str:
     if not hasattr(report, "events") or not report.events:
         return ""
 
-    # Map critical findings to affected event IDs
-    critical_events: dict[str, str] = {}
+    # Distinguish primary finding events from context evidence refs
+    primary_critical: dict[str, str] = {}
+    context_events: set[str] = set()
+
     if hasattr(report, "findings"):
         for f in report.findings:
             if getattr(f, "severity", "") == "CRITICAL":
                 code = getattr(f, "code", "CRITICAL_ANOMALY")
+                feid = getattr(f, "event_id", "")
+                if feid:
+                    primary_critical[feid] = code
                 for ref in getattr(f, "evidence_refs", ()):
-                    critical_events[ref] = code
-                if getattr(f, "event_id", ""):
-                    critical_events[f.event_id] = code
+                    context_events.add(ref)
+
+    context_only = context_events - set(primary_critical.keys())
 
     items_html = []
     events_list = list(report.events)
@@ -337,13 +348,19 @@ def render_lifecycle_timeline_html(report: Any) -> str:
             details.append(f"Cov: {cov}")
         details_str = html.escape(" · ".join(details) if details else "None")
 
-        is_critical = raw_eid in critical_events
-        node_class = "timeline-node critical" if is_critical else "timeline-node"
+        is_critical = raw_eid in primary_critical
+        is_context = raw_eid in context_only
 
-        alert_badge = ""
         if is_critical:
-            reason = critical_events[raw_eid].replace("_", " ")
+            node_class = "timeline-node critical"
+            reason = primary_critical[raw_eid].replace("_", " ")
             alert_badge = f'<div class="node-alert">⚠️ {html.escape(reason)}</div>'
+        elif is_context:
+            node_class = "timeline-node warning"
+            alert_badge = '<div class="node-alert warning">⚠️ Context / Ref</div>'
+        else:
+            node_class = "timeline-node"
+            alert_badge = ""
 
         node_html = f"""
         <div class="{node_class}">
