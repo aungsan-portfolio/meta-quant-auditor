@@ -85,6 +85,16 @@ class UITests(unittest.TestCase):
                 self.assertIn("&lt;img", html_out)
         self.assertIn("timeline-node critical", timeline)
 
+    def test_timeline_distinguishes_critical_from_context_events(self):
+        html_out = render_lifecycle_timeline_html(self.report)
+        # E-003 is context only -> warning class
+        self.assertIn('node-id">E-003</span>', html_out)
+        self.assertIn('timeline-node warning', html_out)
+        # E-004 is primary critical for RELEASE_ORDER_NOT_TERMINAL
+        # E-005 is primary critical for LATE_FILL_AFTER_RELEASE
+        self.assertIn('RELEASE ORDER NOT TERMINAL', html_out)
+        self.assertIn('LATE FILL AFTER RELEASE', html_out)
+
 
 if __name__ == "__main__":
     unittest.main()
