@@ -8,7 +8,9 @@ from .workbench_model import _explain
 
 SYSTEM = '''You audit only a built-in FICTIONAL scenario. Return exactly one JSON object
 with exactly three keys: {"action": "...", "args": {}, "reason": "brief action justification"}.
-No prose outside JSON, no native tool calls, no additional keys. A single json fence is accepted.
+Use bare JSON only, with no prose, markdown, native tool calls, or additional keys.
+For the first step, a valid complete response is:
+{"action":"run_lifecycle_audit","args":{},"reason":"Check the fictional lifecycle."}
 Allowed actions, each at most ONCE per run:
 run_lifecycle_audit: args {}. Do this FIRST. Local code computes G01-G04 and critical history.
 query_order_status: args {}. Only when missing_evidence.event_type is BROKER_ORDER.

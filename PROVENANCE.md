@@ -42,10 +42,15 @@ live-spike CLI. Deterministic gates/history and the private bot's policies are u
 The model has no broker, arbitrary network, shell or filesystem tool. New fake-transport
 tests cover valid/invalid runs, schema/number limits, missing evidence, step/repeat
 limits, gate-change attempts, consent, cancellation and request-worker timeout cleanup.
-The CLI was invoked here but returned NOT_RUN / KEY_MISSING without a provider request;
-no successful live agent result is claimed. See [AGENT_MODE.md](docs/AGENT_MODE.md) for
-the test scope and Tuesday-night Thailand go/no-go checkpoint.
-The branch passed 216 offline unit tests and 12 Streamlit/UI-suite checks locally on
+The CLI was invoked here but returned NOT_RUN / KEY_MISSING without a provider request.
+The participant subsequently supplied a Windows live-spike receipt: the `late_fill`
+case stopped at the first response with REJECTED / MALFORMED_JSON, and the second case
+did not run. That receipt did not preserve response text, so it does not identify the
+precise formatting error. The fixed instruction was clarified with a concrete JSON
+example, and the spike receipt now reports only bounded error categories for rejected
+JSON. Neither change proves live protocol compliance; a new consented live run remains
+necessary. See [AGENT_MODE.md](docs/AGENT_MODE.md) for the test scope and checkpoint.
+The branch passed 219 offline unit tests and 12 Streamlit/UI-suite checks locally on
 Linux/Python 3.12.14; a real request-worker process was exercised with an empty key,
 and provider requests in the remaining tests used fake transports.
 

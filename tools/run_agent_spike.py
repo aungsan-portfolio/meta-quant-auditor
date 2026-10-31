@@ -19,6 +19,41 @@ if str(ROOT) not in sys.path:
 from auditor.agent import AgentRun
 from auditor.agent_model import request_action
 from auditor.model import MODEL
+from auditor.model_json import strict_json_object, unwrap_json_response
+
+
+def json_failure_diagnostic(text: str) -> dict | None:
+    """Classify a rejected envelope without retaining or returning model text.
+
+    This only observes the response already received. It does not repair the
+    response, relax the parser, call the provider again, or execute an action.
+    The receipt contains fixed labels rather than error messages or excerpts.
+    """
+    if type(text) is not str:
+        return {'error': 'NOT_TEXT', 'prefix': 'OTHER'}
+    stripped = text.strip()
+    prefix = ('OBJECT' if stripped.startswith('{') else
+              'FENCE' if stripped.startswith('```') else 'OTHER')
+    if not stripped or len(text) > 12_000:
+        return {'error': 'EMPTY_OR_OVERSIZED', 'prefix': prefix}
+    try:
+        body = unwrap_json_response(text)
+        strict_json_object(text)
+    except json.JSONDecodeError as exc:
+        position = ('START' if exc.pos <= 1 else
+                    'END' if exc.pos >= max(0, len(body) - 2) else 'MIDDLE')
+        code = 'EXTRA_CONTENT' if exc.msg == 'Extra data' else 'JSON_SYNTAX'
+        return {'error': code, 'prefix': prefix, 'position': position}
+    except ValueError as exc:
+        codes = {'Unsupported JSON response envelope.': 'INVALID_FENCE',
+                 'Duplicate JSON property.': 'DUPLICATE_KEY',
+                 'Nonfinite JSON number.': 'NONFINITE_NUMBER',
+                 'JSON object required.': 'NOT_OBJECT',
+                 'Empty or oversized JSON response.': 'EMPTY_OR_OVERSIZED'}
+        return {'error': codes.get(str(exc), 'INVALID_JSON'), 'prefix': prefix}
+    except (TypeError, RecursionError, OverflowError):
+        return {'error': 'INVALID_JSON', 'prefix': prefix}
+    return None
 
 
 def run_spike(api_key: str, *, transport=None) -> dict:
@@ -29,17 +64,28 @@ def run_spike(api_key: str, *, transport=None) -> dict:
     started = time.monotonic()
     for scenario in ('late_fill', 'order_unavailable'):
         run = AgentRun(scenario)
+        diagnostic = None
         def ask(context):
+            nonlocal diagnostic
             if time.monotonic() - started >= 600:
                 raise TimeoutError('Spike window ended.')
-            return request_action(context, api_key, transport=transport)
+            text = request_action(context, api_key, transport=transport)
+            try:
+                diagnostic = json_failure_diagnostic(text)
+            except Exception:
+                # Diagnostics must never alter the actual validation or leak text.
+                diagnostic = {'error': 'DIAGNOSTIC_FAILED', 'prefix': 'OTHER'}
+            return text
         result = run.run(ask)
         actions = [s['action'] for s in result['steps']]
         correct = (result['status'] == 'FINISHED' if scenario == 'late_fill'
                    else result['status'] == 'NEEDS_INPUT' and 'query_order_status' in actions)
-        receipt['cases'].append({'scenario': scenario, 'status': result['status'],
-                                 'reason': result['reason'], 'actions': actions,
-                                 'protocol_and_path_ok': correct})
+        case = {'scenario': scenario, 'status': result['status'],
+                'reason': result['reason'], 'actions': actions,
+                'protocol_and_path_ok': correct}
+        if result['reason'] == 'MALFORMED_JSON' and diagnostic is not None:
+            case['json_diagnostic'] = diagnostic
+        receipt['cases'].append(case)
         if not correct:
             break  # No repair call, automatic retry, or second-case rescue.
     receipt['elapsed_seconds'] = round(time.monotonic() - started, 3)

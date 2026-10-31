@@ -13,7 +13,7 @@ from auditor.agent_jobs import AgentJob
 from auditor.agent_model import AgentModelError, request_action
 from auditor.model import ENDPOINT, MODEL, TransportError
 from auditor.agent_transport import agent_post
-from tools.run_agent_spike import run_spike
+from tools.run_agent_spike import json_failure_diagnostic, run_spike
 
 
 def claim(value='PASS', *, field='current_gate'):
@@ -305,6 +305,45 @@ class AgentTests(unittest.TestCase):
         receipt = run_spike('sentinel', transport=bad)
         self.assertEqual(receipt['status'], 'NO_GO')
         self.assertEqual(bad.call_count, 1)
+
+    def test_spike_json_diagnostics_classify_without_model_text(self):
+        bad_outputs = [
+            ('SENSITIVE_MODEL_TEXT ' + action('run_lifecycle_audit'),
+             {'error': 'JSON_SYNTAX', 'prefix': 'OTHER', 'position': 'START'}),
+            ('{"action":', {'error': 'JSON_SYNTAX', 'prefix': 'OBJECT', 'position': 'END'}),
+            ('{"x":1,"x":2}', {'error': 'DUPLICATE_KEY', 'prefix': 'OBJECT'}),
+            ('{"x":1e999}', {'error': 'NONFINITE_NUMBER', 'prefix': 'OBJECT'}),
+            ('[]', {'error': 'NOT_OBJECT', 'prefix': 'OTHER'}),
+            ('```json\n{"x":1}', {'error': 'INVALID_FENCE', 'prefix': 'FENCE'}),
+            ('{} trailing', {'error': 'EXTRA_CONTENT', 'prefix': 'OBJECT', 'position': 'MIDDLE'}),
+        ]
+        for raw, expected in bad_outputs:
+            with self.subTest(expected=expected):
+                fake = mock.Mock(return_value=response(raw))
+                receipt = run_spike('SECRET_KEY_SENTINEL', transport=fake)
+                self.assertEqual(receipt['status'], 'NO_GO')
+                self.assertEqual(receipt['cases'][0]['reason'], 'MALFORMED_JSON')
+                self.assertEqual(receipt['cases'][0]['json_diagnostic'], expected)
+                self.assertEqual(fake.call_count, 1)
+                self.assertNotIn('SENSITIVE_MODEL_TEXT', json.dumps(receipt))
+                self.assertNotIn('SECRET_KEY_SENTINEL', json.dumps(receipt))
+        self.assertIsNone(json_failure_diagnostic(action('run_lifecycle_audit')))
+        self.assertIsNone(json_failure_diagnostic('```json\n' + action('run_lifecycle_audit') + '\n```'))
+
+    def test_spike_schema_rejection_is_not_misreported_as_malformed_json(self):
+        raw = json.dumps({'action': 'run_lifecycle_audit', 'args': {},
+                          'reason': 'Check', 'extra': 'SENSITIVE_MODEL_TEXT'})
+        receipt = run_spike('SECRET_KEY_SENTINEL', transport=lambda *args: response(raw))
+        self.assertEqual(receipt['cases'][0]['reason'], 'INVALID_SCHEMA')
+        self.assertNotIn('json_diagnostic', receipt['cases'][0])
+        self.assertNotIn('SENSITIVE_MODEL_TEXT', json.dumps(receipt))
+
+    def test_failed_diagnostic_does_not_change_rejection(self):
+        with mock.patch('tools.run_agent_spike.json_failure_diagnostic', side_effect=RuntimeError('secret')):
+            receipt = run_spike('sentinel', transport=lambda *args: response('not JSON'))
+        self.assertEqual(receipt['cases'][0]['reason'], 'MALFORMED_JSON')
+        self.assertEqual(receipt['cases'][0]['json_diagnostic']['error'], 'DIAGNOSTIC_FAILED')
+        self.assertNotIn('secret', json.dumps(receipt))
 
 
 if __name__ == '__main__':

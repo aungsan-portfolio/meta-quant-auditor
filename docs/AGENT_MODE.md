@@ -72,9 +72,9 @@ These are on-demand scripted observations, not an independent market/broker stre
 
 ## Ten-minute live spike
 
-Local validation on October 31 (Linux/Python 3.12.14): **216 unit tests** passed with
+Local validation on October 31 (Linux/Python 3.12.14): **219 unit tests** passed with
 ResourceWarning promoted to errors, and **12 Streamlit AppTest/network-guard checks**
-passed. That includes 28 new unit tests and 3 new agent-page checks. Fake transports
+passed. That includes 31 new unit tests and 3 new agent-page checks. Fake transports
 exercise complete action runs; the subprocess startup test uses an empty key and
 does not connect to the provider. These are not browser-visual or live-provider tests.
 
@@ -92,9 +92,19 @@ the Git-ignored reports folder. `GO_PROTOCOL` means those two paths worked in th
 particular run, not comprehensive safety. Offline tests also exercise this harness
 using a fake transport; those results must not be presented as live Meta evidence.
 
-**Current live record (October 31): NOT_RUN / KEY_MISSING.** This coding environment
-has neither a Baseten environment key nor a repo `.env`. No live request was made.
-The event model's protocol adherence and provider latency remain unverified here.
+**Participant-reported live record (October 31): NO_GO / MALFORMED_JSON.** The first
+response in the Windows `late_fill` case was rejected, so the runner stopped without
+executing a model-selected action or starting the second case. The previous receipt did
+not save the response text, so it cannot identify the exact problem. In this coding
+environment the separate attempt returned NOT_RUN / KEY_MISSING without a request.
+
+The fixed instruction now includes a complete example of a first-step JSON action. A
+new manually started spike reports a fixed `json_diagnostic` category for malformed
+JSON: a syntax/shape category, a coarse prefix category and, where relevant, a coarse
+error position. It never stores or prints response text, provider errors, credentials,
+or model reasoning. This diagnostic does not change validation, repair output or send
+another request. The cause and whether the prompt change helps remain unverified until
+the participant runs the updated version. The earlier receipt cannot be reclassified.
 
 ## Go/no-go checkpoint
 

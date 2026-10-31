@@ -50,11 +50,12 @@ action loop over built-in fictional scenarios. Start opens an evidence/instructi
 preview; explicit consent starts serial model requests. Local code validates each
 action, runs the audit/query tools, preserves critical history, and compares final
 structured claims. Requests are capped at eight steps with a 30-second request-worker
-deadline and no automatic retries. This draft has offline coverage; its live spike is
-currently **NOT_RUN / KEY_MISSING** in the coding environment. It does not add broker
+deadline and no automatic retries. The participant's first Windows live spike returned
+**NO_GO / MALFORMED_JSON** on the first case; the response text was not retained, so
+the exact formatting problem remains unknown. It does not add broker
 execution or change the separate bot's policy.
 
-On this branch, the full local Linux/Python 3.12.14 suite passed **216 unit tests** and
+On this branch, the full local Linux/Python 3.12.14 suite passed **219 unit tests** and
 **12 Streamlit/UI checks**. The agent tests use fake transports; these results do not
 establish live Muse Spark protocol adherence or Windows browser rendering.
 
