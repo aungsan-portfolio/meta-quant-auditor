@@ -8,13 +8,16 @@ bot, shell, arbitrary URL, file upload or real account data is exposed as a mode
 ## Run and consent
 
 Start the normal app from this branch and open **Auditor Agent**. **Start agent** opens
-the preview; it makes no provider request. Review the initial evidence, all scripted
-snapshots and the fixed instruction, check consent, then press **Run consented agent**.
+a short fictional-case summary and preview; it makes no provider request. Expand and
+review the complete initial evidence, all scripted snapshots and the fixed instruction,
+check consent, then press **Run consented agent**. A new run or scenario change requires
+a fresh preview and explicit consent.
 Only built-in fictional cases are accepted. Later requests send updated fictional
 evidence and local tool outputs. The background worker publishes completed steps;
 a Streamlit fragment refreshes the Plan / Act / Observe display every half second.
-Each row shows the proposed action/args, a brief unverified reason, local validation
-and local output. This is a decision/action trace, not private model reasoning.
+Each step shows the proposed action, a brief unverified reason, local validation and
+a readable local result. Full action arguments and output are available in a collapsed
+technical-details section. This is a decision/action trace, not private model reasoning.
 
 **Stop after current request** prevents the next request and discards a result arriving
 after cancellation. **Refresh agent controls** refreshes the page controls after a run.
@@ -73,8 +76,8 @@ These are on-demand scripted observations, not an independent market/broker stre
 ## Ten-minute live spike
 
 Local validation on October 31 (Linux/Python 3.12.14): **221 unit tests** passed with
-ResourceWarning promoted to errors, and **12 Streamlit AppTest/network-guard checks**
-passed. That includes 33 new unit tests and 3 new agent-page checks. Fake transports
+ResourceWarning promoted to errors, and **14 Streamlit AppTest/network-guard checks**
+passed. That includes 33 new unit tests and 5 agent-page checks. Fake transports
 exercise complete action runs; the subprocess startup test uses an empty key and
 does not connect to the provider. These are not browser-visual or live-provider tests.
 

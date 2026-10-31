@@ -58,7 +58,7 @@ general reliability guarantee. It does not add broker execution or change the
 separate bot's policy.
 
 On this branch, the full local Linux/Python 3.12.14 suite passed **221 unit tests** and
-**12 Streamlit/UI checks**. The agent tests use fake transports; they are separate from
+**14 Streamlit/UI checks**. The agent tests use fake transports; they are separate from
 the participant-reported live spike and do not establish Windows browser rendering.
 
 | View | What to inspect |

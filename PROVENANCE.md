@@ -66,6 +66,15 @@ The branch passed 221 offline unit tests and 12 Streamlit/UI-suite checks locall
 Linux/Python 3.12.14; a real request-worker process was exercised with an empty key,
 and provider requests in the remaining tests used fake transports.
 
+The participant then shared a Windows screenshot showing that the initial Agent preview
+expanded into a long JSON display. The draft UI now shows a compact fictional lifecycle
+summary, with the exact initial evidence, all scripted snapshots and fixed instruction
+available in collapsed sections before consent. Completed steps show readable local
+summaries with optional technical details. A new preview and consent are required for
+each run or scenario change. The agent protocol, model request, audit and scenarios were
+not changed. The revised UI passed five agent-page AppTests with a fake transport; it
+has not yet been visually reviewed in the participant's Windows browser.
+
 The participant reported successful model explanations for a fresh quote (G01 PASS), a stale quote (G01 BLOCK), and a wide spread (G02 VETO) in the original single-gate Windows demo. The participant also reported 150 offline tests passing on Windows, with three mocked HTTP-error resource-cleanup warnings, and exercised the synthetic cancellation follow-up while critical history remained visible. Screenshots did not show a submitted review action. These are participant-reported observations, not independent broker or source verification. The project does not include live logs or credentials; offline tests use fake transports.
 
 On October 29, the participant supplied a Windows Cancellation Safety screenshot showing "Structured response received from Muse Spark" for the built-in pending-cancel/early-release/late-fill case. Seven displayed claims were marked `EVIDENCE_MATCH`: order statuses, cumulative fill, quote and exposure statuses, the current `BLOCK` gate, and a recorded early-release finding. The interpretation was visibly labeled unverified. This adds screenshot evidence of that one structured-claim UI flow; it is not an independent provider-network capture, broker verification, or validation of all model paths. Live-provider checks of the separate Workbench replay, Trace Inspector, and cancellation narrative paths remain unconfirmed in this record.
