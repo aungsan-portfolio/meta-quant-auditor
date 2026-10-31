@@ -18,6 +18,10 @@ from .review import build_memo
 
 
 MAX_STEPS = 8
+OUTPUT_INSTRUCTION = (
+    'Choose the next allowed action for this fictional case. Return one JSON object '
+    'with exactly action, args, and reason. Do not add any text outside the object.'
+)
 ACTIONS = frozenset({'run_lifecycle_audit', 'query_order_status', 'query_position',
                      'query_protection', 'compare_claims', 'request_human_input', 'finish_report'})
 SCENARIOS = {
@@ -100,6 +104,7 @@ class AgentRun:
             'audit_action_completed': self._audited,
             'used_actions': sorted(self._used),
             'remaining_steps': self.max_steps - len(self._steps),
+            'output_instruction': OUTPUT_INSTRUCTION,
             'observations': [{'action': s['action'], 'tool_output': s['tool_output']}
                              for s in self._steps if s['validation'] == 'ALLOWED'],
         })

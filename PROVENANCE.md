@@ -47,10 +47,15 @@ The participant subsequently supplied a Windows live-spike receipt: the `late_fi
 case stopped at the first response with REJECTED / MALFORMED_JSON, and the second case
 did not run. That receipt did not preserve response text, so it does not identify the
 precise formatting error. The fixed instruction was clarified with a concrete JSON
-example, and the spike receipt now reports only bounded error categories for rejected
-JSON. Neither change proves live protocol compliance; a new consented live run remains
-necessary. See [AGENT_MODE.md](docs/AGENT_MODE.md) for the test scope and checkpoint.
-The branch passed 219 offline unit tests and 12 Streamlit/UI-suite checks locally on
+example, and the spike receipt reports only bounded error categories for rejected JSON.
+In a second participant-supplied Windows receipt, `late_fill` finished in four actions
+with human review required, but `order_unavailable` was rejected at its first response
+as MALFORMED_JSON with a non-object/fence prefix. The combined run remained NO_GO; the
+response itself was not retained. A fixed output-format instruction was added to the
+previewed user context and the diagnostic categories were refined; neither is known
+to fix the issue. A further consented live test remains necessary. See
+[AGENT_MODE.md](docs/AGENT_MODE.md) for the test scope and checkpoint.
+The branch passed 221 offline unit tests and 12 Streamlit/UI-suite checks locally on
 Linux/Python 3.12.14; a real request-worker process was exercised with an empty key,
 and provider requests in the remaining tests used fake transports.
 

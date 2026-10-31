@@ -43,7 +43,23 @@ def json_failure_diagnostic(text: str) -> dict | None:
         position = ('START' if exc.pos <= 1 else
                     'END' if exc.pos >= max(0, len(body) - 2) else 'MIDDLE')
         code = 'EXTRA_CONTENT' if exc.msg == 'Extra data' else 'JSON_SYNTAX'
-        return {'error': code, 'prefix': prefix, 'position': position}
+        detail = {'error': code, 'prefix': prefix, 'position': position}
+        if prefix == 'OTHER' and position == 'START':
+            if stripped.startswith('\ufeff'):
+                prefix_kind = 'BYTE_ORDER_MARK'
+            elif stripped.startswith(('<think>', '<analysis>')):
+                prefix_kind = 'REASONING_TAG'
+            elif stripped.startswith('<'):
+                prefix_kind = 'MARKUP'
+            elif stripped.startswith('['):
+                prefix_kind = 'ARRAY'
+            elif stripped[0].isalpha():
+                prefix_kind = 'TEXT'
+            else:
+                prefix_kind = 'OTHER'
+            detail['prefix_kind'] = prefix_kind
+            detail['object_marker_later'] = '{' in stripped[1:]
+        return detail
     except ValueError as exc:
         codes = {'Unsupported JSON response envelope.': 'INVALID_FENCE',
                  'Duplicate JSON property.': 'DUPLICATE_KEY',

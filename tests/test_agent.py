@@ -8,7 +8,7 @@ from pathlib import Path
 import unittest
 from unittest import mock
 
-from auditor.agent import ACTIONS, ActionError, AgentRun, parse_action
+from auditor.agent import ACTIONS, OUTPUT_INSTRUCTION, ActionError, AgentRun, parse_action
 from auditor.agent_jobs import AgentJob
 from auditor.agent_model import AgentModelError, request_action
 from auditor.model import ENDPOINT, MODEL, TransportError
@@ -207,6 +207,17 @@ class AgentTests(unittest.TestCase):
         self.assertEqual(run.context()['evidence']['current_gate'], 'BLOCK')
         self.assertEqual(run.scripted_snapshots()['query_position']['position_qty'], 4)
 
+    def test_previewed_context_matches_first_model_request(self):
+        preview = AgentRun('order_unavailable').context()
+        def transport(_url, _key, body, _timeout):
+            sent = json.loads(body['messages'][1]['content'])
+            self.assertEqual(sent, preview)
+            self.assertEqual(sent['output_instruction'], OUTPUT_INSTRUCTION)
+            self.assertNotIn('tools', body)
+            return response(action('run_lifecycle_audit'))
+        self.assertEqual(parse_action(request_action(preview, 'sentinel', transport=transport)).action,
+                         'run_lifecycle_audit')
+
     def test_transport_error_is_safe_and_not_retried(self):
         calls = []
         def transport(*args):
@@ -309,7 +320,8 @@ class AgentTests(unittest.TestCase):
     def test_spike_json_diagnostics_classify_without_model_text(self):
         bad_outputs = [
             ('SENSITIVE_MODEL_TEXT ' + action('run_lifecycle_audit'),
-             {'error': 'JSON_SYNTAX', 'prefix': 'OTHER', 'position': 'START'}),
+             {'error': 'JSON_SYNTAX', 'prefix': 'OTHER', 'position': 'START',
+              'prefix_kind': 'TEXT', 'object_marker_later': True}),
             ('{"action":', {'error': 'JSON_SYNTAX', 'prefix': 'OBJECT', 'position': 'END'}),
             ('{"x":1,"x":2}', {'error': 'DUPLICATE_KEY', 'prefix': 'OBJECT'}),
             ('{"x":1e999}', {'error': 'NONFINITE_NUMBER', 'prefix': 'OBJECT'}),
@@ -329,6 +341,23 @@ class AgentTests(unittest.TestCase):
                 self.assertNotIn('SECRET_KEY_SENTINEL', json.dumps(receipt))
         self.assertIsNone(json_failure_diagnostic(action('run_lifecycle_audit')))
         self.assertIsNone(json_failure_diagnostic('```json\n' + action('run_lifecycle_audit') + '\n```'))
+
+    def test_spike_stops_after_first_malformed_second_case_response(self):
+        def fake(url, key, body, timeout):
+            context = json.loads(body['messages'][1]['content'])
+            if context['scenario_id'] == 'order_unavailable':
+                return response('<think>SENSITIVE_MODEL_TEXT</think> ' + action('run_lifecycle_audit'))
+            return response(scripted_action(context))
+        fake = mock.Mock(side_effect=fake)
+        receipt = run_spike('SECRET_KEY_SENTINEL', transport=fake)
+        self.assertEqual(receipt['status'], 'NO_GO')
+        self.assertEqual(receipt['cases'][0]['status'], 'FINISHED')
+        self.assertEqual(receipt['cases'][1]['reason'], 'MALFORMED_JSON')
+        self.assertEqual(receipt['cases'][1]['actions'], ['INVALID'])
+        self.assertEqual(receipt['cases'][1]['json_diagnostic']['prefix_kind'], 'REASONING_TAG')
+        self.assertEqual(fake.call_count, 5)
+        self.assertNotIn('SENSITIVE_MODEL_TEXT', json.dumps(receipt))
+        self.assertNotIn('SECRET_KEY_SENTINEL', json.dumps(receipt))
 
     def test_spike_schema_rejection_is_not_misreported_as_malformed_json(self):
         raw = json.dumps({'action': 'run_lifecycle_audit', 'args': {},

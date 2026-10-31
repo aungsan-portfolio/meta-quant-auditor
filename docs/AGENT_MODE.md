@@ -72,9 +72,9 @@ These are on-demand scripted observations, not an independent market/broker stre
 
 ## Ten-minute live spike
 
-Local validation on October 31 (Linux/Python 3.12.14): **219 unit tests** passed with
+Local validation on October 31 (Linux/Python 3.12.14): **221 unit tests** passed with
 ResourceWarning promoted to errors, and **12 Streamlit AppTest/network-guard checks**
-passed. That includes 31 new unit tests and 3 new agent-page checks. Fake transports
+passed. That includes 33 new unit tests and 3 new agent-page checks. Fake transports
 exercise complete action runs; the subprocess startup test uses an empty key and
 does not connect to the provider. These are not browser-visual or live-provider tests.
 
@@ -92,19 +92,30 @@ the Git-ignored reports folder. `GO_PROTOCOL` means those two paths worked in th
 particular run, not comprehensive safety. Offline tests also exercise this harness
 using a fake transport; those results must not be presented as live Meta evidence.
 
-**Participant-reported live record (October 31): NO_GO / MALFORMED_JSON.** The first
-response in the Windows `late_fill` case was rejected, so the runner stopped without
-executing a model-selected action or starting the second case. The previous receipt did
-not save the response text, so it cannot identify the exact problem. In this coding
-environment the separate attempt returned NOT_RUN / KEY_MISSING without a request.
+**Participant-reported live records (October 31):** The first Windows spike was
+NO_GO / MALFORMED_JSON on the first response of `late_fill`. After a prompt change, a
+second spike finished `late_fill` in four actions with human review required, but the
+first `order_unavailable` response was rejected as MALFORMED_JSON; its diagnostic
+indicated a non-object/fence prefix and an error at the start. The combined result was
+still NO_GO. Neither receipt saved response text, so the exact problem is unknown. In
+this coding environment a separate attempt returned NOT_RUN / KEY_MISSING without a
+request.
 
-The fixed instruction now includes a complete example of a first-step JSON action. A
-new manually started spike reports a fixed `json_diagnostic` category for malformed
-JSON: a syntax/shape category, a coarse prefix category and, where relevant, a coarse
-error position. It never stores or prints response text, provider errors, credentials,
-or model reasoning. This diagnostic does not change validation, repair output or send
-another request. The cause and whether the prompt change helps remain unverified until
-the participant runs the updated version. The earlier receipt cannot be reclassified.
+The previewed context now includes a fixed request for one JSON action, in addition to
+the system instruction and first-step example. The spike reports coarse diagnostic
+categories for malformed output, including a prefix type when identifiable and whether
+an object marker appears later. It never stores or prints response text, provider
+errors, credentials, or model reasoning. These changes do not relax validation, repair
+output or send another request. Whether the additional instruction helps remains
+unverified until a new live run; earlier receipts cannot be reclassified.
+
+Baseten's [JSON mode documentation](https://docs.baseten.co/inference/json-mode) says
+Muse Spark Open on Model APIs accepts `json_object` but does not constrain its output to
+JSON. Its [structured-output documentation](https://docs.baseten.co/inference/structured-outputs)
+likewise says `json_schema` is not enforced for Muse Spark Open. Those documents do not
+separately establish behavior for the event-specific `-1026` identifier. The agent does
+not rely on either feature: it prompts for JSON and validates the complete response
+locally, rejecting invalid output without retry.
 
 ## Go/no-go checkpoint
 
