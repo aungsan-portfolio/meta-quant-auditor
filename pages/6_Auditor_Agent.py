@@ -9,6 +9,7 @@ import streamlit as st
 from auditor.agent import AgentRun, SCENARIOS
 from auditor.agent_jobs import AgentJob
 from auditor.agent_model import SYSTEM
+from auditor.model import MODEL
 from auditor.ui import apply_theme
 
 
@@ -59,6 +60,7 @@ st.set_page_config(page_title='Synthetic Auditor Agent', page_icon='🔎', layou
 apply_theme()
 st.title('Synthetic Auditor Agent')
 st.info('Experimental draft · scripted FICTIONAL snapshots only. No broker or trade execution.')
+st.caption(f'Configured provider: Baseten · Requested model: {MODEL}')
 if 'auditor_agent_job' not in st.session_state:
     st.session_state.auditor_agent_job = AgentJob()
 job = st.session_state.auditor_agent_job
@@ -126,6 +128,16 @@ def show_agent_trace():
         st.caption('The trace below is from the previous run and will be replaced when a new run starts.')
     st.write(f"Scenario: {current['scenario_id']} · Status: {current['status']} · Reason: {current['reason']}")
     st.caption('Run is active; one request at a time.' if running else 'Run ended; no further requests.')
+    sources = {step.get('response_source', 'UNVERIFIED_OR_CUSTOM') for step in current['steps']}
+    if sources == {'BASETEN_LIVE_RESPONSE'}:
+        st.success('LIVE response received via the configured Baseten worker · Muse Spark Open requested.')
+        st.caption('Source is reported by this application; it is not an independent provider attestation.')
+    elif sources:
+        st.warning('A test, custom, or unverified transport was used; a live provider response is not established.')
+    else:
+        st.caption('No provider response has been confirmed for this run yet.')
+    if current.get('request_failure_seconds') is not None:
+        st.caption(f"Failed request duration: {current['request_failure_seconds']:.3f} s")
     if running and not current['steps']:
         st.info('Waiting for the first model response. Each request has a 30-second deadline.')
     for step in current['steps']:
@@ -133,6 +145,10 @@ def show_agent_trace():
             label = ACTION_LABELS.get(step['action'], 'Unknown model action')
             st.markdown(f"**Step {step['step']} · {label}**")
             st.write(f"Plan: `{step['action']}` · Act: **{step['validation']}**")
+            if 'request_seconds' in step and 'local_seconds' in step:
+                total = step['request_seconds'] + step['local_seconds']
+                st.caption(f"Step: {total:.3f} s · Model request: {step['request_seconds']:.3f} s · "
+                           f"Local checks: {step['local_seconds']:.3f} s")
             if step['reason_unverified']:
                 st.text(f"Model reason (unverified): {step['reason_unverified']}")
             st.write('Observe:')
@@ -140,13 +156,23 @@ def show_agent_trace():
             with st.expander('View technical action and result', expanded=False):
                 st.json({'action': step['action'], 'args': step['args'],
                          'reason_unverified': step['reason_unverified'],
+                         'response_source': step.get('response_source'),
+                         'request_seconds': step.get('request_seconds'),
+                         'local_seconds': step.get('local_seconds'),
                          'tool_output': step['tool_output']}, expanded=False)
     with st.expander('Deterministic current memo and retained history'):
         st.json(current['local_memo'])
     if current['final_report']:
         report = current['final_report']
         st.subheader('Final report · local evidence and claim comparisons')
-        st.dataframe(report['claims'], hide_index=True, width='stretch')
+        columns = ['status', 'field', 'event_id', 'claimed', 'evidence', 'reason', 'scope']
+        displayed_claims = [{name: claim[name] for name in columns} for claim in report['claims']]
+        st.dataframe(displayed_claims, hide_index=True, width='stretch', column_order=columns,
+                     column_config={
+                         'status': st.column_config.TextColumn('Verification', width='medium'),
+                         'field': st.column_config.TextColumn('Field', width='medium'),
+                         'event_id': st.column_config.TextColumn('Event', width='small'),
+                     })
         st.warning('Model narrative is unverified. A field match is not proof of real-world truth.')
         st.text(report['narrative_unverified'])
         st.download_button('Download synthetic agent report', json.dumps(report, indent=2),

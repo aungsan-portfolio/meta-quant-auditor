@@ -18,6 +18,13 @@ SAFE_ERRORS = frozenset({'RESPONSE_TOO_LARGE', 'ACCESS_DENIED', 'RATE_LIMITED', 
                          'TIMEOUT', 'CONNECTION_ERROR', 'INVALID_RESPONSE'})
 
 
+class FixedEndpointResponse(dict):
+    """Response returned by this process's fixed endpoint worker.
+
+    This is application-level provenance, not an independently signed receipt.
+    """
+
+
 def agent_post(url: str, key: str, payload: dict, timeout: float) -> dict:
     if url != ENDPOINT or timeout != 30.0:
         raise TransportError('INVALID_RESPONSE')
@@ -39,7 +46,7 @@ def agent_post(url: str, key: str, payload: dict, timeout: float) -> dict:
         if type(result) is not dict:
             raise TransportError('INVALID_RESPONSE')
         if result.get('ok') is True and type(result.get('response')) is dict:
-            return result['response']
+            return FixedEndpointResponse(result['response'])
         code = result.get('error')
         raise TransportError(code if type(code) is str and code in SAFE_ERRORS else 'INVALID_RESPONSE')
     except TransportError:

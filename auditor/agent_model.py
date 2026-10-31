@@ -1,11 +1,13 @@
 """Single-request Muse Spark adapter for the JSON action protocol (not native tools)."""
 from __future__ import annotations
 
+from .agent import AgentResponse
 from .model import Transport
-from .agent_transport import agent_post as _post
+from .agent_transport import FixedEndpointResponse, agent_post as _post
 from .workbench_model import _explain
 
 
+_FIXED_AGENT_POST = _post
 SYSTEM = '''You audit only a built-in FICTIONAL scenario. Return exactly one JSON object
 with exactly three keys: {"action": "...", "args": {}, "reason": "brief action justification"}.
 Use bare JSON only, with no prose, markdown, native tool calls, or additional keys.
@@ -45,3 +47,24 @@ def request_action(context: dict, api_key: str, *, transport: Transport | None =
     if result.status != 'AVAILABLE':
         raise AgentModelError(result.reason)
     return result.text
+
+
+def request_action_observed(context: dict, api_key: str, *, transport: Transport | None = None) -> AgentResponse:
+    """Mark only responses that passed through the configured endpoint worker.
+
+    Injected/custom transports are never labelled live. This is application-level
+    telemetry, not a signed provider attestation.
+    """
+    target = _post if transport is None else transport
+    observed_fixed_response = False
+
+    def observe(url, key, payload, timeout):
+        nonlocal observed_fixed_response
+        result = target(url, key, payload, timeout)
+        observed_fixed_response = (transport is None and target is _FIXED_AGENT_POST
+                                   and type(result) is FixedEndpointResponse)
+        return result
+
+    text = request_action(context, api_key, transport=observe)
+    source = 'BASETEN_LIVE_RESPONSE' if observed_fixed_response else 'UNVERIFIED_OR_CUSTOM'
+    return AgentResponse(text, source)

@@ -57,11 +57,18 @@ on earlier revisions returned NO_GO. This is one successful two-scenario run, no
 general reliability guarantee. It does not add broker execution or change the
 separate bot's policy.
 
-On this branch, the full local Linux/Python 3.12.14 suite passed **221 unit tests** and
+The Agent page shows the configured provider and requested model, application-reported
+source of responses, and per-step request/local-check durations. A live badge is shown
+only for a response returned through the fixed endpoint worker; injected transports are
+marked unverified. This application telemetry is not an independent provider attestation.
+An explicit-consent [repeatability harness](docs/AGENT_MODE.md) records 3–5 independent
+trials per scenario, including failures. It has not yet been run live on this revision.
+
+On this branch, the full local Linux/Python 3.12.14 suite passed **232 unit tests** and
 **14 Streamlit/UI checks**. The agent tests use fake transports; they are separate from
-the participant-reported live spike. A subsequent participant screenshot shows the
-`late_fill` step cards and final claim table in a Windows browser; it does not show the
-preview, consent, incremental updates or the unavailable-snapshot UI case.
+the participant-reported live spike. Participant screenshots show the `late_fill`
+result and the `order_unavailable` stop in a Windows browser. They do not show the
+preview, consent or incremental updates, and precede the latest table/telemetry update.
 
 | View | What to inspect |
 | --- | --- |

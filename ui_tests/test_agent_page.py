@@ -106,6 +106,16 @@ class AgentPageTests(unittest.TestCase):
             self.assertTrue(any('FINISHED' in item.value for item in app.markdown))
             self.assertEqual(len(job.snapshot()[1]['steps']), 4)
             self.assertTrue(any('unverified' in item.value.lower() for item in app.warning))
+            self.assertTrue(any('test, custom, or unverified transport' in item.value.lower()
+                                for item in app.warning))
+            self.assertFalse(any('LIVE response received' in item.value for item in app.success))
+            self.assertEqual(len([item for item in app.caption if 'Model request:' in item.value]), 4)
+            self.assertEqual(list(app.dataframe[-1].value.columns),
+                             ['status', 'field', 'event_id', 'claimed', 'evidence', 'reason', 'scope'])
+            self.assertEqual(list(app.dataframe[-1].proto.column_order)[0], 'status')
+            config = json.loads(app.dataframe[-1].proto.columns)
+            self.assertEqual(config['status']['width'], 'medium')
+            self.assertEqual(config['field']['width'], 'medium')
             details = [item for item in app.get('expander') if item.label == 'View technical action and result']
             self.assertEqual(len(details), 4)
             self.assertTrue(all(not item.proto.expanded for item in details))

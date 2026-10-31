@@ -18,6 +18,12 @@ a Streamlit fragment refreshes the Plan / Act / Observe display every half secon
 Each step shows the proposed action, a brief unverified reason, local validation and
 a readable local result. Full action arguments and output are available in a collapsed
 technical-details section. This is a decision/action trace, not private model reasoning.
+The page shows the configured Baseten endpoint and requested model. Only responses
+returned by the fixed endpoint worker receive the application-reported LIVE label;
+custom/injected transports are marked unverified. This is not an independently signed
+provider receipt. Each completed step also shows monotonic request and local-check
+durations; the former includes context/worker overhead, not just provider inference.
+Final claim rows show the full verification status first and omit the displayed index.
 
 **Stop after current request** prevents the next request and discards a result arriving
 after cancellation. **Refresh agent controls** refreshes the page controls after a run.
@@ -75,9 +81,9 @@ These are on-demand scripted observations, not an independent market/broker stre
 
 ## Ten-minute live spike
 
-Local validation on October 31 (Linux/Python 3.12.14): **221 unit tests** passed with
+Local validation on October 31 (Linux/Python 3.12.14): **232 unit tests** passed with
 ResourceWarning promoted to errors, and **14 Streamlit AppTest/network-guard checks**
-passed. That includes 33 new unit tests and 5 agent-page checks. Fake transports
+passed. That includes 44 agent protocol/repeatability unit tests and 5 agent-page checks. Fake transports
 exercise complete action runs; the subprocess startup test uses an empty key and
 does not connect to the provider. These are not browser-visual or live-provider tests.
 
@@ -95,6 +101,26 @@ the Git-ignored reports folder. `GO_PROTOCOL` means those two paths worked in th
 particular run, not comprehensive safety. Offline tests also exercise this harness
 using a fake transport; those results must not be presented as live Meta evidence.
 
+To conduct the requested independent repetitions on Windows, review the fictional
+scenarios and run the following **once** with a local key and explicit consent:
+
+```powershell
+.\.venv\Scripts\python.exe tools\run_agent_reliability.py --consent --runs-per-case 3 --output reports\agent-reliability.json
+```
+
+The command schedules three independent `late_fill` and three independent
+`order_unavailable` runs (or 4–5 each when selected), at most eight serial requests per
+run. These are pre-planned measurements, not retries within a failed run. All failed,
+rejected and unavailable results remain in the receipt. The receipt distinguishes
+protocol compliance, protocol violations, incomplete step-limited runs, undetermined transport failures, expected
+scenario paths and claim-status counts. A completed path does not imply every claim
+matched. It records UTC timestamps, source commit/clean state and response-source
+telemetry, not model prose or credentials. A pre-existing output file is never
+overwritten. A ten-minute start window is enforced, reserving 30 seconds for any new
+request; an incomplete batch is reported as such. Six planned runs can send up to 48
+provider requests and may consume credits. The repeated live batch is **not yet run**
+on this revision; offline fake-transport trials are not live evidence.
+
 **Participant-reported live records (October 31):** The first Windows spike was
 NO_GO / MALFORMED_JSON on the first response of `late_fill`. After a prompt change, a
 second spike finished `late_fill` in four actions with human review required, but the
@@ -111,9 +137,11 @@ a separate attempt returned NOT_RUN / KEY_MISSING without a request.
 
 A subsequent participant-provided Windows screenshot shows the revised `late_fill`
 page with four completed step cards, a final claim table, and the unverified narrative
-warning. It does not show the preview, consent, intermediate streaming updates, exact
-commit, or the `order_unavailable` browser case. A screenshot alone is not a provider
-network capture and is too small to independently read every claim status.
+warning. Another screenshot shows `order_unavailable` stop at NEEDS_INPUT after an
+allowed order-status query. These screenshots do not show the preview, consent,
+intermediate updates or exact commit, and precede the latest table/telemetry changes.
+A screenshot alone is not a provider network capture and does not establish every
+claim status or future reliability.
 
 The previewed context now includes a fixed request for one JSON action, in addition to
 the system instruction and first-step example. The spike reports coarse diagnostic

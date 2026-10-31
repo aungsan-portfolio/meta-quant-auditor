@@ -32,7 +32,7 @@ class AgentJob:
             self._snapshot = run.snapshot()
             # Key exists only in this worker closure; never in the snapshot/context.
             self._future = self._executor.submit(
-                run.run, lambda ctx: agent_model.request_action(ctx, api_key.strip()),
+                run.run, lambda ctx: agent_model.request_action_observed(ctx, api_key.strip()),
                 on_update=self._publish, cancelled=self._cancel.is_set)
             return True
 

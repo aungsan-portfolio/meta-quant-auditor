@@ -8,11 +8,11 @@ from pathlib import Path
 import unittest
 from unittest import mock
 
-from auditor.agent import ACTIONS, OUTPUT_INSTRUCTION, ActionError, AgentRun, parse_action
+from auditor.agent import ACTIONS, OUTPUT_INSTRUCTION, ActionError, AgentResponse, AgentRun, parse_action
 from auditor.agent_jobs import AgentJob
-from auditor.agent_model import AgentModelError, request_action
+from auditor.agent_model import AgentModelError, request_action, request_action_observed
 from auditor.model import ENDPOINT, MODEL, TransportError
-from auditor.agent_transport import agent_post
+from auditor.agent_transport import FixedEndpointResponse, agent_post
 from tools.run_agent_spike import json_failure_diagnostic, run_spike
 
 
@@ -227,6 +227,8 @@ class AgentTests(unittest.TestCase):
         result = run.run(lambda ctx: request_action(ctx, 'sentinel', transport=transport))
         self.assertEqual((len(calls), calls[0][-1]), (1, 30.0))
         self.assertEqual(result['status'], 'MODEL_UNAVAILABLE')
+        self.assertGreaterEqual(result['request_failure_seconds'], 0)
+        self.assertEqual(result['steps'], [])
         self.assertNotIn('sentinel', json.dumps(result))
 
     def test_native_tool_call_response_is_not_accepted(self):
@@ -283,7 +285,7 @@ class AgentTests(unittest.TestCase):
 
     def test_job_requires_consent_and_is_single_flight(self):
         entered, release = Event(), Event()
-        def blocking(*_):
+        def blocking(*_, **__):
             entered.set()
             self.assertTrue(release.wait(3))
             return action('run_lifecycle_audit')
@@ -306,6 +308,35 @@ class AgentTests(unittest.TestCase):
         transport = mock.Mock()
         self.assertEqual(run_spike('', transport=transport)['status'], 'NOT_RUN')
         transport.assert_not_called()
+
+    def test_custom_transport_is_not_labelled_as_live(self):
+        fake = lambda *_: response(action('run_lifecycle_audit'))
+        reply = request_action_observed({}, 'sentinel', transport=fake)
+        self.assertEqual(reply.source, 'UNVERIFIED_OR_CUSTOM')
+        with mock.patch('auditor.agent_model._post', side_effect=fake):
+            reply = request_action_observed({}, 'sentinel')
+        self.assertEqual(reply.source, 'UNVERIFIED_OR_CUSTOM')
+        spoofed = lambda *_: FixedEndpointResponse(response(action('run_lifecycle_audit')))
+        self.assertEqual(request_action_observed({}, 'sentinel', transport=spoofed).source,
+                         'UNVERIFIED_OR_CUSTOM')
+
+    def test_fixed_worker_response_has_application_level_source(self):
+        child = mock.MagicMock(returncode=0)
+        child.__enter__.return_value = child
+        child.communicate.return_value = (json.dumps({'ok': True, 'response': response(
+            action('run_lifecycle_audit'))}), '')
+        with mock.patch('auditor.agent_transport.subprocess.Popen', return_value=child):
+            reply = request_action_observed({}, 'sentinel')
+        self.assertEqual(reply.source, 'BASETEN_LIVE_RESPONSE')
+
+    def test_request_and_local_step_durations_do_not_change_evidence(self):
+        run = AgentRun('late_fill')
+        result = run.run(lambda ctx: AgentResponse(scripted_action(ctx), 'UNVERIFIED_OR_CUSTOM'))
+        self.assertEqual(result['status'], 'FINISHED')
+        self.assertTrue(all(step['request_seconds'] >= 0 and step['local_seconds'] >= 0
+                            and step['response_source'] == 'UNVERIFIED_OR_CUSTOM'
+                            for step in result['steps']))
+        self.assertNotIn('request_seconds', json.dumps(run.context()))
 
     def test_spike_success_and_failure_are_honest_with_fake_transport(self):
         fake = lambda url, key, body, timeout: response(scripted_action(json.loads(body['messages'][1]['content'])))

@@ -17,7 +17,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from auditor.agent import AgentRun
-from auditor.agent_model import request_action
+from auditor.agent_model import request_action_observed
 from auditor.model import MODEL
 from auditor.model_json import strict_json_object, unwrap_json_response
 
@@ -72,6 +72,75 @@ def json_failure_diagnostic(text: str) -> dict | None:
     return None
 
 
+def run_case(scenario: str, api_key: str, *, transport=None, deadline=None) -> dict:
+    """One bounded run; never retry an action or return model prose."""
+    if scenario not in ('late_fill', 'order_unavailable'):
+        raise ValueError('Unsupported spike scenario.')
+    run = AgentRun(scenario)
+    diagnostic = None
+    requests = 0
+    window_ended = False
+    started = time.monotonic()
+
+    def ask(context):
+        nonlocal diagnostic, requests, window_ended
+        # Leave a full 30-second request window before the overall deadline.
+        if deadline is not None and time.monotonic() + 30.0 >= deadline:
+            window_ended = True
+            raise TimeoutError('Spike window ended.')
+        requests += 1
+        reply = request_action_observed(context, api_key, transport=transport)
+        try:
+            diagnostic = json_failure_diagnostic(reply.text)
+        except Exception:
+            # Diagnostics must never alter the actual validation or leak text.
+            diagnostic = {'error': 'DIAGNOSTIC_FAILED', 'prefix': 'OTHER'}
+        return reply
+
+    result = run.run(ask)
+    steps = result['steps']
+    actions = [s['action'] for s in steps]
+    gate = result['local_memo']['checks']['G03']
+    critical_codes = {finding['code'] for finding in gate['critical_history']}
+    if scenario == 'late_fill':
+        expected = (result['status'] == 'FINISHED' and result['final_report'] is not None
+                    and result['final_report']['review_required'] is True
+                    and gate['current_status'] == 'PASS'
+                    and {'RELEASE_ORDER_NOT_TERMINAL', 'LATE_FILL_AFTER_RELEASE'} <= critical_codes)
+    else:
+        expected = (result['status'] == 'NEEDS_INPUT'
+                    and result['reason'] == 'SCRIPTED_EVIDENCE_UNAVAILABLE'
+                    and result['final_report'] is None and gate['current_status'] == 'BLOCK'
+                    and bool(steps) and steps[-1]['action'] == 'query_order_status')
+    violations = {'MALFORMED_JSON', 'INVALID_SCHEMA', 'INVALID_ACTION', 'INVALID_ARGS',
+                  'INVALID_REASON', 'REPEATED_ACTION', 'AUDIT_REQUIRED', 'QUERY_NOT_REQUIRED'}
+    if result['status'] == 'REJECTED' and result['reason'] in violations:
+        protocol = 'VIOLATION'
+    elif result['status'] == 'STEP_LIMIT':
+        protocol = 'INCOMPLETE'
+    elif steps and result['status'] in ('FINISHED', 'NEEDS_INPUT') and all(s['validation'] == 'ALLOWED' for s in steps):
+        protocol = 'COMPLIANT'
+    else:
+        protocol = 'UNDETERMINED'
+    case = {'scenario': scenario, 'status': result['status'], 'reason': result['reason'],
+            'actions': actions, 'protocol': protocol, 'protocol_and_path_ok': bool(expected),
+            'requests_attempted': requests, 'elapsed_seconds': round(time.monotonic() - started, 3),
+            'request_failure_seconds': result['request_failure_seconds'],
+            'steps': [{'action': s['action'], 'validation': s['validation'],
+                       'request_seconds': s.get('request_seconds'), 'local_seconds': s.get('local_seconds'),
+                       'response_source': s.get('response_source')} for s in steps]}
+    if result['final_report'] is not None:
+        claims = result['final_report']['claims']
+        case['claim_counts'] = {status: sum(c['status'] == status for c in claims)
+                                for status in ('EVIDENCE_MATCH', 'CONTRADICTION', 'UNVERIFIED')}
+        case['human_review_required'] = result['final_report']['review_required']
+    if window_ended:
+        case['window_ended'] = True
+    if result['reason'] == 'MALFORMED_JSON' and diagnostic is not None:
+        case['json_diagnostic'] = diagnostic
+    return case
+
+
 def run_spike(api_key: str, *, transport=None) -> dict:
     receipt = {'model': MODEL, 'protocol': 'json-action-v1', 'synthetic': True,
                'status': 'NOT_RUN', 'reason': 'KEY_MISSING', 'cases': []}
@@ -79,30 +148,9 @@ def run_spike(api_key: str, *, transport=None) -> dict:
         return receipt
     started = time.monotonic()
     for scenario in ('late_fill', 'order_unavailable'):
-        run = AgentRun(scenario)
-        diagnostic = None
-        def ask(context):
-            nonlocal diagnostic
-            if time.monotonic() - started >= 600:
-                raise TimeoutError('Spike window ended.')
-            text = request_action(context, api_key, transport=transport)
-            try:
-                diagnostic = json_failure_diagnostic(text)
-            except Exception:
-                # Diagnostics must never alter the actual validation or leak text.
-                diagnostic = {'error': 'DIAGNOSTIC_FAILED', 'prefix': 'OTHER'}
-            return text
-        result = run.run(ask)
-        actions = [s['action'] for s in result['steps']]
-        correct = (result['status'] == 'FINISHED' if scenario == 'late_fill'
-                   else result['status'] == 'NEEDS_INPUT' and 'query_order_status' in actions)
-        case = {'scenario': scenario, 'status': result['status'],
-                'reason': result['reason'], 'actions': actions,
-                'protocol_and_path_ok': correct}
-        if result['reason'] == 'MALFORMED_JSON' and diagnostic is not None:
-            case['json_diagnostic'] = diagnostic
+        case = run_case(scenario, api_key, transport=transport, deadline=started + 600)
         receipt['cases'].append(case)
-        if not correct:
+        if not case['protocol_and_path_ok']:
             break  # No repair call, automatic retry, or second-case rescue.
     receipt['elapsed_seconds'] = round(time.monotonic() - started, 3)
     receipt['status'] = 'GO_PROTOCOL' if len(receipt['cases']) == 2 and all(

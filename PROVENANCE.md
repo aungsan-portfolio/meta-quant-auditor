@@ -75,8 +75,19 @@ each run or scenario change. The agent protocol, model request, audit and scenar
 not changed. The revised UI passed five agent-page AppTests with a fake transport. A
 subsequent participant-provided Windows screenshot shows the `late_fill` completed
 trace as four step cards, a final structured-claims table and the unverified narrative
-warning. That screenshot does not show the preview, consent, incremental updates,
-unavailable-snapshot case, exact commit or an independent provider-network capture.
+warning. A later screenshot shows `order_unavailable` with an allowed order-status
+query followed by NEEDS_INPUT / SCRIPTED_EVIDENCE_UNAVAILABLE. Those screenshots do not
+show the preview, consent, incremental updates, exact commit or an independent
+provider-network capture.
+
+After those screenshots, this draft put the verification column first, hid the claim
+index and added configured provider/model text, application-reported response-source
+labels, and locally measured per-step durations. Injected transports do not earn the
+live-response label; the label is not a signed provider attestation. The new CLI plans
+3–5 independent repetitions per fictional scenario and keeps failed/undetermined runs
+in its counts. It requires explicit consent and contains no per-run retry. The local
+coding environment has no Baseten key; no repeated live-run result is claimed for this
+revision. The original two-scenario Windows spike remains attributed to `4228e98`.
 
 The participant reported successful model explanations for a fresh quote (G01 PASS), a stale quote (G01 BLOCK), and a wide spread (G02 VETO) in the original single-gate Windows demo. The participant also reported 150 offline tests passing on Windows, with three mocked HTTP-error resource-cleanup warnings, and exercised the synthetic cancellation follow-up while critical history remained visible. Screenshots did not show a submitted review action. These are participant-reported observations, not independent broker or source verification. The project does not include live logs or credentials; offline tests use fake transports.
 

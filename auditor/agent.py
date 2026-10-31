@@ -8,6 +8,7 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 import json
+from time import monotonic
 from typing import Callable
 
 from .cancellation import audit_trace, model_evidence, parse_trace, sample_traces
@@ -44,6 +45,13 @@ class Action:
     action: str
     args: dict
     reason: str
+
+
+@dataclass(frozen=True)
+class AgentResponse:
+    """Local request metadata; never parsed from a model action."""
+    text: str
+    source: str
 
 
 def parse_action(text: str) -> Action:
@@ -94,6 +102,7 @@ class AgentRun:
         self._used = set()
         self._audited = False
         self._final = None
+        self._request_failure_seconds = None
 
     def context(self) -> dict:
         # Never feed model-generated reason/narrative back as trusted evidence.
@@ -113,6 +122,7 @@ class AgentRun:
         return deepcopy({'scenario_id': self.scenario_id, 'synthetic': True,
                          'status': self.status, 'reason': self.reason,
                          'max_steps': self.max_steps, 'steps': self._steps,
+                         'request_failure_seconds': self._request_failure_seconds,
                          'local_memo': build_memo(self._report), 'final_report': self._final})
 
     def scripted_snapshots(self) -> dict:
@@ -214,21 +224,33 @@ class AgentRun:
             self.stop('STEP_LIMIT', 'STEP_LIMIT')
         return self.snapshot()
 
-    def run(self, requester: Callable[[dict], str], *, on_update=None, cancelled=None) -> dict:
+    def run(self, requester: Callable[[dict], str | AgentResponse], *, on_update=None, cancelled=None) -> dict:
         """One response per step, strictly serial, no retries or repair calls."""
         while self.status == 'RUNNING':
             if cancelled and cancelled():
                 self.stop('CANCELLED', 'OPERATOR_STOPPED')
                 break
+            request_started = monotonic()
             try:
                 response = requester(self.context())
             except Exception:
+                self._request_failure_seconds = round(max(0.0, monotonic() - request_started), 3)
                 self.stop('MODEL_UNAVAILABLE', 'MODEL_REQUEST_FAILED')
                 break
+            request_seconds = max(0.0, monotonic() - request_started)
             if cancelled and cancelled():
                 self.stop('CANCELLED', 'OPERATOR_STOPPED')
                 break
+            source = 'UNVERIFIED_OR_CUSTOM'
+            if isinstance(response, AgentResponse):
+                source = response.source if response.source in {'BASETEN_LIVE_RESPONSE', 'UNVERIFIED_OR_CUSTOM'} else source
+                response = response.text
+            local_started = monotonic()
             self.step(response)
+            local_seconds = max(0.0, monotonic() - local_started)
+            self._steps[-1]['request_seconds'] = round(request_seconds, 3)
+            self._steps[-1]['local_seconds'] = round(local_seconds, 3)
+            self._steps[-1]['response_source'] = source
             if on_update:
                 on_update(self.snapshot())
         result = self.snapshot()
