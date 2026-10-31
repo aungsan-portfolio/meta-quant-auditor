@@ -34,6 +34,21 @@ The cross-platform CI review also refined the UI-test network guard: literal-loo
 
 ## Live-test record
 
+On October 31, a separate `agent-mode` draft was prepared from baseline `af276a2` at
+the participant's explicit request, leaving `main` unchanged. It adds a bounded JSON
+action protocol, local action validation, scripted fictional order/position/protection
+queries, existing claim-verifier integration, a preview/consent Streamlit view and a
+live-spike CLI. Deterministic gates/history and the private bot's policies are unchanged.
+The model has no broker, arbitrary network, shell or filesystem tool. New fake-transport
+tests cover valid/invalid runs, schema/number limits, missing evidence, step/repeat
+limits, gate-change attempts, consent, cancellation and request-worker timeout cleanup.
+The CLI was invoked here but returned NOT_RUN / KEY_MISSING without a provider request;
+no successful live agent result is claimed. See [AGENT_MODE.md](docs/AGENT_MODE.md) for
+the test scope and Tuesday-night Thailand go/no-go checkpoint.
+The branch passed 216 offline unit tests and 12 Streamlit/UI-suite checks locally on
+Linux/Python 3.12.14; a real request-worker process was exercised with an empty key,
+and provider requests in the remaining tests used fake transports.
+
 The participant reported successful model explanations for a fresh quote (G01 PASS), a stale quote (G01 BLOCK), and a wide spread (G02 VETO) in the original single-gate Windows demo. The participant also reported 150 offline tests passing on Windows, with three mocked HTTP-error resource-cleanup warnings, and exercised the synthetic cancellation follow-up while critical history remained visible. Screenshots did not show a submitted review action. These are participant-reported observations, not independent broker or source verification. The project does not include live logs or credentials; offline tests use fake transports.
 
 On October 29, the participant supplied a Windows Cancellation Safety screenshot showing "Structured response received from Muse Spark" for the built-in pending-cancel/early-release/late-fill case. Seven displayed claims were marked `EVIDENCE_MATCH`: order statuses, cumulative fill, quote and exposure statuses, the current `BLOCK` gate, and a recorded early-release finding. The interpretation was visibly labeled unverified. This adds screenshot evidence of that one structured-claim UI flow; it is not an independent provider-network capture, broker verification, or validation of all model paths. Live-provider checks of the separate Workbench replay, Trace Inspector, and cancellation narrative paths remain unconfirmed in this record.

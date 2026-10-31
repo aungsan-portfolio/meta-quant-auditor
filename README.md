@@ -45,6 +45,19 @@ Model requests are explicit, run in the background, and have no automatic retrie
 
 ## Other views
 
+**Experimental branch feature:** [Auditor Agent](docs/AGENT_MODE.md) uses a closed JSON
+action loop over built-in fictional scenarios. Start opens an evidence/instruction
+preview; explicit consent starts serial model requests. Local code validates each
+action, runs the audit/query tools, preserves critical history, and compares final
+structured claims. Requests are capped at eight steps with a 30-second request-worker
+deadline and no automatic retries. This draft has offline coverage; its live spike is
+currently **NOT_RUN / KEY_MISSING** in the coding environment. It does not add broker
+execution or change the separate bot's policy.
+
+On this branch, the full local Linux/Python 3.12.14 suite passed **216 unit tests** and
+**12 Streamlit/UI checks**. The agent tests use fake transports; these results do not
+establish live Muse Spark protocol adherence or Windows browser rendering.
+
 | View | What to inspect |
 | --- | --- |
 | Home | Fictional quote freshness and spread checks; optional single-gate explanation. |
@@ -113,7 +126,7 @@ Use built-in fictional examples for the shared demo. Supported JSON uploads must
 - This is a research prototype using fictional audit cases. It has no broker integration or order execution and is not financial advice. Quote checks use a shared fictional snapshot; cancellation observations and supplied protection fields are case evidence, not proof of live broker state.
 - Duplicate detection uses an in-memory simulation ledger, not durable or broker-side idempotency. The cockpit does not check freshness, daily loss, broker protection, or overall eligibility.
 - Memo review actions are unauthenticated browser-session records. A fingerprint is not a signature or verified identity. Reviews disappear with the session unless downloaded; recording a review does not validate AI prose or authorize a trade.
-- Plan → Act → Observe describes fixed application steps. The demo is not an autonomous model agent. Free-form explanations remain unverified even when some structured fields match.
+- Plan → Act → Observe on Cancellation Safety describes fixed application steps. The separate experimental Auditor Agent page records model-selected, locally validated actions. Free-form explanations remain unverified even when some structured fields match.
 
 ## Provenance
 
