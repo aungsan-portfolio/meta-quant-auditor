@@ -1,12 +1,31 @@
 # Meta Quant Auditor
 
-[![Offline tests](https://github.com/aungsan-portfolio/meta-quant-auditor/actions/workflows/offline-tests.yml/badge.svg)](https://github.com/aungsan-portfolio/meta-quant-auditor/actions/workflows/offline-tests.yml)
+[![Agent branch offline tests](https://github.com/aungsan-portfolio/meta-quant-auditor/actions/workflows/offline-tests.yml/badge.svg?branch=agent-mode)](https://github.com/aungsan-portfolio/meta-quant-auditor/actions/workflows/offline-tests.yml?query=branch%3Aagent-mode)
 
 Meta Quant Auditor helps paper-trading developers and reviewers investigate why a risk check blocks or passes a candidate. It reconstructs fictional cancellation timelines, keeps unsafe history visible, and compares selected structured claims from Meta Muse Spark Open with the supplied evidence.
 
 **Model proposes claims. Local code compares supported fields with evidence.** The main demo is a standalone workbench with built-in synthetic cases; the earlier trading bot is not needed to run it.
 
 **Track:** Indie Developer candidate. **Theme:** Build for Your World.
+
+> **Quick overview:** During the hackathon I built this standalone synthetic auditor,
+> its lifecycle cases, and its Meta integration; my paper-trading bot and earlier audit
+> scaffold predate the event. The selected Auditor Agent uses
+> **Muse Spark Open** (`meta-models/muse-spark-open-1026`) through Baseten. Start with
+> the [run instructions](#run-locally), [draft agent demo script](docs/DEMO_SCRIPT.md),
+> or [baseline demo script](docs/DEMO_BASELINE.md). Agent promotion and the
+> final video remain subject to the [go/no-go checkpoint](docs/AGENT_MODE.md#go-no-go-checkpoint).
+
+On macOS/Linux, start the selected branch with:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m streamlit run app.py
+```
+
+Open **Auditor Agent**; the live agent run needs a locally configured Baseten key.
+The [Windows commands](#windows) and offline cases are available below.
 
 ## Why I built this
 
@@ -24,7 +43,7 @@ Meta Quant Auditor turns those domain problems into fictional, reproducible audi
 
 ## Start with one case
 
-Run the app and open **Cancellation Safety**:
+For a deterministic baseline walkthrough, run the app and open **Cancellation Safety**:
 
 1. Select **Pending cancel → early release → late fill**. A reservation was released while cancellation was pending; a later fill exposes the unsafe sequence. Inspect the finding and its evidence events.
 2. Add fictional position and protection follow-ups if requested. A later current PASS does not erase the critical history.
@@ -33,7 +52,7 @@ Run the app and open **Cancellation Safety**:
 
 This lets a reviewer distinguish a claim that matches a supplied field, a contradiction, and a claim for which evidence is missing. Matching fictional fields does not establish real-world truth or verify the meaning of an entire explanation.
 
-The [demo script](docs/DEMO_SCRIPT.md) covers the prior-work disclosure, domain experience, lifecycle differences, a live Meta request, and the synthetic cockpit. It targets 2:50; the recorded video must be 3:00 or less.
+The [draft agent demo script](docs/DEMO_SCRIPT.md) covers the prior-work disclosure, domain experience, agent actions, and a live Meta request. Its timing is a rehearsal target; the recorded video must be 3:00 or less. The [baseline demo script](docs/DEMO_BASELINE.md) remains available for the Cancellation Safety and cockpit walkthrough.
 
 ## What Meta adds
 
@@ -45,6 +64,39 @@ Model requests are explicit, run in the background, and have no automatic retrie
 
 ## Other views
 
+**Auditor Agent:** [Agent mode](docs/AGENT_MODE.md) uses a closed JSON
+action loop over built-in fictional scenarios. Start opens an evidence/instruction
+preview; explicit consent starts serial model requests. Local code validates each
+action, runs the audit/query tools, preserves critical history, and compares final
+structured claims. Requests are capped at eight steps with a 30-second request-worker
+deadline and no automatic retries. The participant's third Windows live spike, on
+runtime commit `4228e98`, returned **GO_PROTOCOL**: `late_fill` finished with human
+review required and `order_unavailable` stopped at `NEEDS_INPUT`. Two earlier spikes
+on earlier revisions returned NO_GO. This is one successful two-scenario run, not a
+general reliability guarantee. It does not add broker execution or change the
+separate bot's policy.
+
+The Agent page shows the configured provider and requested model, application-reported
+source of responses, and per-step request/local-check durations. A live badge is shown
+only for a response returned through the fixed endpoint worker; injected transports are
+marked unverified. This application telemetry is not an independent provider attestation.
+On October 31, the participant supplied a Windows [repeatability receipt](docs/AGENT_MODE.md)
+for runtime commit `eee6935`: all three `late_fill` runs finished with human review
+required, and all three `order_unavailable` runs stopped at `NEEDS_INPUT`. Each scenario
+was protocol-compliant and followed its expected path 3/3 times. Across the three
+`late_fill` reports, 63 selected claims matched the fictional record, with zero
+contradictions or unverified claims recorded. The receipt reports 18 provider requests
+in 33.237 seconds and a clean, unchanged commit. Its response-source label is
+application-reported, not a signed provider attestation. These six scripted trials do
+not establish future reliability or verify the model's narrative.
+
+On this branch, the full local Linux/Python 3.12.14 suite passed **232 unit tests** and
+**14 Streamlit/UI checks**. The agent tests use fake transports; they are separate from
+the participant-reported live runs. Participant screenshots show the `late_fill`
+result and the `order_unavailable` stop in a Windows browser; later `late_fill`
+screenshots show the verification-first table, per-step timing and live label. They do
+not show preview, consent, incremental updates or the precise runtime commit.
+
 | View | What to inspect |
 | --- | --- |
 | Home | Fictional quote freshness and spread checks; optional single-gate explanation. |
@@ -53,6 +105,7 @@ Model requests are explicit, run in the background, and have no automatic retrie
 | Cancellation Safety | Lifecycle evidence, missing-evidence follow-ups, bounded claim comparison, and a reviewable deterministic memo. |
 | Paper Observation | A fictional step-through replay; an optional read-only view of selected operator-provided local gate records. |
 | Risk Cockpit | Four illustrative checks on fabricated spread, chop, projected-exposure, and confidence inputs; sliders recalculate the checks and the model preview. |
+| Auditor Agent | Model-selected, locally validated actions over scripted fictional lifecycle evidence, with an explicit consent preview and retained history. |
 
 For the cockpit exposure example, select **S&P 500 Afternoon Rotation**. Fictional GOOGL has projected exposure of 32.4%; a 28% demo cap yields `BLOCKED_EXPOSURE`, while a 35% demo cap lets the four displayed checks pass. `SIMULATED_PASS` is a result within those demo thresholds. Moving the slider does not change the separate bot's policy or authorize a trade. Confidence, ATR, and bracket values are fabricated examples, not executed XGBoost inference or live strategy telemetry.
 
@@ -95,8 +148,7 @@ On macOS/Linux, use `.venv/bin/python` in place of the Windows interpreter path.
 
 | Evidence | Scope and limits |
 | --- | --- |
-| 178 unit tests on the patched source | Passed in the local Linux/Python 3.12.14 review, including 11 response-envelope regressions. Tests use fake provider transports. |
-| 8 real Streamlit AppTest checks and 1 network-guard regression | Exercise the entrypoint and all five pages, built-in cases, offline claims, follow-ups, cockpit recalculation, and consent reset with external connections blocked. Local loopback communication needed by Windows asyncio remains available. These are framework/widget checks, not browser visual tests or provider calls. |
+| Agent branch: 232 unit tests and 14 UI checks | Re-run on Linux/Python 3.12.14 on this branch at `5375325`; UI tests use local sockets and fake provider transports. These checks do not establish live provider or browser-visual behavior. |
 | Earlier Windows evidence | The prior source passed 167 offline tests on Windows/Python 3.14. My earlier live checks covered single-gate and reported-paper-event explanations; a Windows cockpit screenshot also showed a live-runtime explanation. These limited observations do not validate every model path or the new dependency pins on Windows. |
 | October 29 Windows structured-claims screenshot | Cancellation Safety displayed a response received from Muse Spark for the built-in pending-cancel/early-release/late-fill case. All seven displayed claims were `EVIDENCE_MATCH`, the current gate was `BLOCK`, and the narrative was labeled unverified. This documents one UI observation, not an independent provider-network capture or comprehensive model-path validation. |
 | GitHub Actions | The workflow targets Linux and Windows on Python 3.11 and 3.14. Remote run results are available through the workflow link above; local checks are separate evidence. |
@@ -113,7 +165,7 @@ Use built-in fictional examples for the shared demo. Supported JSON uploads must
 - This is a research prototype using fictional audit cases. It has no broker integration or order execution and is not financial advice. Quote checks use a shared fictional snapshot; cancellation observations and supplied protection fields are case evidence, not proof of live broker state.
 - Duplicate detection uses an in-memory simulation ledger, not durable or broker-side idempotency. The cockpit does not check freshness, daily loss, broker protection, or overall eligibility.
 - Memo review actions are unauthenticated browser-session records. A fingerprint is not a signature or verified identity. Reviews disappear with the session unless downloaded; recording a review does not validate AI prose or authorize a trade.
-- Plan → Act → Observe describes fixed application steps. The demo is not an autonomous model agent. Free-form explanations remain unverified even when some structured fields match.
+- Plan → Act → Observe on Cancellation Safety describes fixed application steps. The Auditor Agent page records model-selected, locally validated actions. Free-form explanations remain unverified even when some structured fields match.
 
 ## Provenance
 
