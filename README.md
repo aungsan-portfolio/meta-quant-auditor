@@ -50,14 +50,16 @@ action loop over built-in fictional scenarios. Start opens an evidence/instructi
 preview; explicit consent starts serial model requests. Local code validates each
 action, runs the audit/query tools, preserves critical history, and compares final
 structured claims. Requests are capped at eight steps with a 30-second request-worker
-deadline and no automatic retries. In the participant's second Windows live spike,
-`late_fill` finished but `order_unavailable` returned **MALFORMED_JSON**, so the overall
-result was **NO_GO**. No response text was retained and the precise cause is unknown.
-It does not add broker execution or change the separate bot's policy.
+deadline and no automatic retries. The participant's third Windows live spike, on
+runtime commit `4228e98`, returned **GO_PROTOCOL**: `late_fill` finished with human
+review required and `order_unavailable` stopped at `NEEDS_INPUT`. Two earlier spikes
+on earlier revisions returned NO_GO. This is one successful two-scenario run, not a
+general reliability guarantee. It does not add broker execution or change the
+separate bot's policy.
 
 On this branch, the full local Linux/Python 3.12.14 suite passed **221 unit tests** and
-**12 Streamlit/UI checks**. The agent tests use fake transports; these results do not
-establish live Muse Spark protocol adherence or Windows browser rendering.
+**12 Streamlit/UI checks**. The agent tests use fake transports; they are separate from
+the participant-reported live spike and do not establish Windows browser rendering.
 
 | View | What to inspect |
 | --- | --- |

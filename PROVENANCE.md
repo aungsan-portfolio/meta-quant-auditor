@@ -52,9 +52,16 @@ In a second participant-supplied Windows receipt, `late_fill` finished in four a
 with human review required, but `order_unavailable` was rejected at its first response
 as MALFORMED_JSON with a non-object/fence prefix. The combined run remained NO_GO; the
 response itself was not retained. A fixed output-format instruction was added to the
-previewed user context and the diagnostic categories were refined; neither is known
-to fix the issue. A further consented live test remains necessary. See
-[AGENT_MODE.md](docs/AGENT_MODE.md) for the test scope and checkpoint.
+previewed user context and the diagnostic categories were refined. The participant's
+third Windows receipt, run on `4228e98`, reported GO_PROTOCOL in 12.838 seconds:
+`late_fill` finished after the audit, position query, protection query, and report;
+`order_unavailable` ran the audit and order query, then stopped at NEEDS_INPUT when
+the scripted snapshot was unavailable. The first report still required human review.
+This is a participant-reported CLI result for two fictional cases, not an independent
+network capture, a browser-visual test, or proof of consistent future behavior. The
+earlier failures occurred on earlier revisions, so they do not establish a failure
+rate for `4228e98`. See [AGENT_MODE.md](docs/AGENT_MODE.md) for the test scope and
+checkpoint.
 The branch passed 221 offline unit tests and 12 Streamlit/UI-suite checks locally on
 Linux/Python 3.12.14; a real request-worker process was exercised with an empty key,
 and provider requests in the remaining tests used fake transports.

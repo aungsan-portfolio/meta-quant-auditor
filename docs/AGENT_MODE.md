@@ -96,18 +96,24 @@ using a fake transport; those results must not be presented as live Meta evidenc
 NO_GO / MALFORMED_JSON on the first response of `late_fill`. After a prompt change, a
 second spike finished `late_fill` in four actions with human review required, but the
 first `order_unavailable` response was rejected as MALFORMED_JSON; its diagnostic
-indicated a non-object/fence prefix and an error at the start. The combined result was
-still NO_GO. Neither receipt saved response text, so the exact problem is unknown. In
-this coding environment a separate attempt returned NOT_RUN / KEY_MISSING without a
-request.
+indicated a non-object/fence prefix and an error at the start; the combined result was
+still NO_GO. On runtime commit `4228e98`, the third spike returned GO_PROTOCOL: the
+`late_fill` case finished after four actions with human review required, and the
+`order_unavailable` case stopped NEEDS_INPUT after its order query returned unavailable.
+That entire two-scenario run took 12.838 seconds. This is the participant's receipt,
+not an independent provider-network capture or Windows browser-visual review. A single
+successful run does not establish a reliability rate. The earlier failures were on
+earlier revisions and their response text was not retained. In this coding environment
+a separate attempt returned NOT_RUN / KEY_MISSING without a request.
 
 The previewed context now includes a fixed request for one JSON action, in addition to
 the system instruction and first-step example. The spike reports coarse diagnostic
 categories for malformed output, including a prefix type when identifiable and whether
 an object marker appears later. It never stores or prints response text, provider
 errors, credentials, or model reasoning. These changes do not relax validation, repair
-output or send another request. Whether the additional instruction helps remains
-unverified until a new live run; earlier receipts cannot be reclassified.
+output or send another request. One run after the additional instruction succeeded,
+but causation and future reliability are not established; earlier receipts cannot be
+reclassified.
 
 Baseten's [JSON mode documentation](https://docs.baseten.co/inference/json-mode) says
 Muse Spark Open on Model APIs accepts `json_object` but does not constrain its output to
@@ -121,8 +127,10 @@ locally, rejecting invalid output without retry.
 
 Checkpoint: **Tuesday night, November 3, 2026, Thailand time (ICT)**. Keep this PR a
 draft and preserve `main` while the baseline submission proceeds in parallel.
-Promote the agent demo only after: a real local-key spike passes both paths; the
-Linux/Windows CI matrix passes; Windows visual review confirms preview/consent and
-incremental trace; and a recorded demo fits within three minutes. Otherwise retain
-the baseline presentation. The organizer's confirmation that submissions remain
-editable until the deadline was supplied by the participant.
+The participant-reported real local-key spike has passed both paths once. Promote the
+agent demo only after: the selected commit's Linux/Windows CI passes; Windows visual
+review confirms preview/consent and incremental trace; and a recorded demo fits within
+three minutes. Assess repeatability in the visual run, with no automatic retries; a
+failed run must remain visible. Otherwise retain the baseline presentation. The
+organizer's confirmation that submissions remain editable until the deadline was
+supplied by the participant.
