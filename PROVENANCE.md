@@ -72,8 +72,11 @@ summary, with the exact initial evidence, all scripted snapshots and fixed instr
 available in collapsed sections before consent. Completed steps show readable local
 summaries with optional technical details. A new preview and consent are required for
 each run or scenario change. The agent protocol, model request, audit and scenarios were
-not changed. The revised UI passed five agent-page AppTests with a fake transport; it
-has not yet been visually reviewed in the participant's Windows browser.
+not changed. The revised UI passed five agent-page AppTests with a fake transport. A
+subsequent participant-provided Windows screenshot shows the `late_fill` completed
+trace as four step cards, a final structured-claims table and the unverified narrative
+warning. That screenshot does not show the preview, consent, incremental updates,
+unavailable-snapshot case, exact commit or an independent provider-network capture.
 
 The participant reported successful model explanations for a fresh quote (G01 PASS), a stale quote (G01 BLOCK), and a wide spread (G02 VETO) in the original single-gate Windows demo. The participant also reported 150 offline tests passing on Windows, with three mocked HTTP-error resource-cleanup warnings, and exercised the synthetic cancellation follow-up while critical history remained visible. Screenshots did not show a submitted review action. These are participant-reported observations, not independent broker or source verification. The project does not include live logs or credentials; offline tests use fake transports.
 

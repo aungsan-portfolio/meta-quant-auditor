@@ -109,6 +109,12 @@ successful run does not establish a reliability rate. The earlier failures were 
 earlier revisions and their response text was not retained. In this coding environment
 a separate attempt returned NOT_RUN / KEY_MISSING without a request.
 
+A subsequent participant-provided Windows screenshot shows the revised `late_fill`
+page with four completed step cards, a final claim table, and the unverified narrative
+warning. It does not show the preview, consent, intermediate streaming updates, exact
+commit, or the `order_unavailable` browser case. A screenshot alone is not a provider
+network capture and is too small to independently read every claim status.
+
 The previewed context now includes a fixed request for one JSON action, in addition to
 the system instruction and first-step example. The spike reports coarse diagnostic
 categories for malformed output, including a prefix type when identifiable and whether

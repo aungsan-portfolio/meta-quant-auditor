@@ -59,7 +59,9 @@ separate bot's policy.
 
 On this branch, the full local Linux/Python 3.12.14 suite passed **221 unit tests** and
 **14 Streamlit/UI checks**. The agent tests use fake transports; they are separate from
-the participant-reported live spike and do not establish Windows browser rendering.
+the participant-reported live spike. A subsequent participant screenshot shows the
+`late_fill` step cards and final claim table in a Windows browser; it does not show the
+preview, consent, incremental updates or the unavailable-snapshot UI case.
 
 | View | What to inspect |
 | --- | --- |
