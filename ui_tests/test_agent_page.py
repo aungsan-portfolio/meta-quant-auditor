@@ -112,6 +112,8 @@ class AgentPageTests(unittest.TestCase):
             self.assertFalse(any(b.label == 'Run consented agent' for b in app.button))
             self.button(app, 'Start agent').click().run()
             self.assertFalse(app.checkbox[0].value)
+            self.assertTrue(any('trace below is from the previous run' in item.value.lower()
+                                for item in app.caption))
 
     def test_unavailable_fictional_snapshot_is_explained_and_stops(self):
         os.environ['BASETEN_API_KEY'] = 'NOT_A_PROVIDER_CREDENTIAL'

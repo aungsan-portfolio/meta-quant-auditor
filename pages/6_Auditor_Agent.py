@@ -78,7 +78,7 @@ if preview_id == scenario_id:
     preview = AgentRun(scenario_id)
     context = preview.context()
     evidence = context['evidence']
-    st.info('Review this fictional case and the full inputs below. Nothing has been sent yet.')
+    st.info('Review this fictional case and the full inputs below. No request has been sent for this preview.')
     summary = st.columns(3)
     summary[0].metric('Fictional events', len(evidence['events']))
     summary[1].metric('Initial gate', evidence['current_gate'])
@@ -122,6 +122,8 @@ def show_agent_trace():
     if current is None:
         return
     st.subheader('Live Plan / Act / Observe')
+    if not running and st.session_state.get('auditor_agent_preview') is not None:
+        st.caption('The trace below is from the previous run and will be replaced when a new run starts.')
     st.write(f"Scenario: {current['scenario_id']} · Status: {current['status']} · Reason: {current['reason']}")
     st.caption('Run is active; one request at a time.' if running else 'Run ended; no further requests.')
     if running and not current['steps']:
