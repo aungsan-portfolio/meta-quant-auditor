@@ -1,7 +1,8 @@
-# Experimental synthetic Auditor Agent
+# Synthetic Auditor Agent
 
-This draft on `agent-mode` starts from baseline `af276a223f1bb916a281d55665c6e2276c5eefcb`.
-It is separate from the submitted baseline. The agent selects JSON actions; local code
+The selected agent submission candidate on `agent-mode` starts from baseline
+`af276a223f1bb916a281d55665c6e2276c5eefcb`. PR #7 remains a draft; promotion
+remains subject to the checkpoint below. The agent selects JSON actions; local code
 computes every gate, preserves history and compares supported claims. No broker, private
 bot, shell, arbitrary URL, file upload or real account data is exposed as a model tool.
 
@@ -175,7 +176,7 @@ locally, rejecting invalid output without retry.
 ## Go/no-go checkpoint
 
 Checkpoint: **Tuesday night, November 3, 2026, Thailand time (ICT)**. Keep this PR a
-draft and preserve `main` while the baseline submission proceeds in parallel.
+draft and preserve `main`, retaining the baseline as a fallback.
 The participant-supplied `eee6935` repeatability receipt shows both paths passed 3/3
 times each. Promote the agent demo only after: the selected commit's Linux/Windows CI
 passes; Windows visual review confirms preview/consent and incremental trace; and a
