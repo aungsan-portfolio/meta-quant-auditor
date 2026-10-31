@@ -85,9 +85,22 @@ index and added configured provider/model text, application-reported response-so
 labels, and locally measured per-step durations. Injected transports do not earn the
 live-response label; the label is not a signed provider attestation. The new CLI plans
 3–5 independent repetitions per fictional scenario and keeps failed/undetermined runs
-in its counts. It requires explicit consent and contains no per-run retry. The local
-coding environment has no Baseten key; no repeated live-run result is claimed for this
-revision. The original two-scenario Windows spike remains attributed to `4228e98`.
+in its counts. It requires explicit consent and contains no per-run retry. Later
+participant-provided screenshots show a `late_fill` result with the live label and
+per-step timing; they do not independently establish the provider connection or commit.
+
+The participant then supplied a Windows repeatability receipt for October 31,
+12:22:54–12:23:27 UTC (19:22:54–19:23:27 Thailand time), on runtime commit
+`eee6935439731989c61a5227197d349377c65f02`; the receipt reported a clean working tree
+at the start and end. Each of three `late_fill` runs finished with human review required;
+each of three `order_unavailable` runs stopped at NEEDS_INPUT. All six were protocol
+compliant and followed their expected paths. The three finished reports recorded 22,
+18 and 23 selected claim matches, with no contradictions or unverified claims. The
+batch recorded 18 requests and took 33.237 seconds. Its fixed-worker response-source
+labels are application-reported, not an independent provider attestation. The data
+and queries were fictional; matched claims do not verify narrative or real-world facts.
+These six trials do not establish future reliability. The original two-scenario Windows
+spike remains attributed to `4228e98`; earlier failures were on earlier revisions.
 
 The participant reported successful model explanations for a fresh quote (G01 PASS), a stale quote (G01 BLOCK), and a wide spread (G02 VETO) in the original single-gate Windows demo. The participant also reported 150 offline tests passing on Windows, with three mocked HTTP-error resource-cleanup warnings, and exercised the synthetic cancellation follow-up while critical history remained visible. Screenshots did not show a submitted review action. These are participant-reported observations, not independent broker or source verification. The project does not include live logs or credentials; offline tests use fake transports.
 

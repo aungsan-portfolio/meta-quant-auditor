@@ -118,8 +118,20 @@ matched. It records UTC timestamps, source commit/clean state and response-sourc
 telemetry, not model prose or credentials. A pre-existing output file is never
 overwritten. A ten-minute start window is enforced, reserving 30 seconds for any new
 request; an incomplete batch is reported as such. Six planned runs can send up to 48
-provider requests and may consume credits. The repeated live batch is **not yet run**
-on this revision; offline fake-transport trials are not live evidence.
+provider requests and may consume credits. Offline fake-transport trials are not live
+evidence.
+
+**Participant-supplied Windows repeatability receipt, October 31:** On runtime commit
+`eee6935439731989c61a5227197d349377c65f02`, with a clean tree at start and end, the
+batch ran from 12:22:54 to 12:23:27 UTC (19:22:54–19:23:27 Thailand time). All three
+`late_fill` runs finished with human review required; all three `order_unavailable`
+runs stopped NEEDS_INPUT after the scripted snapshot was unavailable. Each scenario was
+protocol-compliant and followed its expected path 3/3 times. The three completed reports
+recorded 22, 18 and 23 selected claim matches, with no contradictions or unverified
+claims. The batch recorded 18 provider requests and took 33.237 seconds. Response
+origin was labelled live by the application, not independently attested. Claims are
+compared with fictional evidence; narrative remains unverified. Six scripted trials
+are a limited observation, not a guarantee of future model behavior.
 
 **Participant-reported live records (October 31):** The first Windows spike was
 NO_GO / MALFORMED_JSON on the first response of `late_fill`. After a prompt change, a
@@ -135,11 +147,11 @@ successful run does not establish a reliability rate. The earlier failures were 
 earlier revisions and their response text was not retained. In this coding environment
 a separate attempt returned NOT_RUN / KEY_MISSING without a request.
 
-A subsequent participant-provided Windows screenshot shows the revised `late_fill`
-page with four completed step cards, a final claim table, and the unverified narrative
-warning. Another screenshot shows `order_unavailable` stop at NEEDS_INPUT after an
-allowed order-status query. These screenshots do not show the preview, consent,
-intermediate updates or exact commit, and precede the latest table/telemetry changes.
+Participant-provided Windows screenshots show `late_fill` step cards, a final claim
+table and the unverified-narrative warning, plus an `order_unavailable` stop at
+NEEDS_INPUT. Later `late_fill` screenshots show the live label, per-step durations and
+verification-first table; some long cells are clipped at the captured screen size.
+The screenshots do not show preview, consent, intermediate updates or the exact commit.
 A screenshot alone is not a provider network capture and does not establish every
 claim status or future reliability.
 
@@ -164,10 +176,10 @@ locally, rejecting invalid output without retry.
 
 Checkpoint: **Tuesday night, November 3, 2026, Thailand time (ICT)**. Keep this PR a
 draft and preserve `main` while the baseline submission proceeds in parallel.
-The participant-reported real local-key spike has passed both paths once. Promote the
-agent demo only after: the selected commit's Linux/Windows CI passes; Windows visual
-review confirms preview/consent and incremental trace; and a recorded demo fits within
-three minutes. Assess repeatability in the visual run, with no automatic retries; a
+The participant-supplied `eee6935` repeatability receipt shows both paths passed 3/3
+times each. Promote the agent demo only after: the selected commit's Linux/Windows CI
+passes; Windows visual review confirms preview/consent and incremental trace; and a
+recorded demo fits within three minutes. Assess repeatability in the visual run, with no automatic retries; a
 failed run must remain visible. Otherwise retain the baseline presentation. The
 organizer's confirmation that submissions remain editable until the deadline was
 supplied by the participant.
