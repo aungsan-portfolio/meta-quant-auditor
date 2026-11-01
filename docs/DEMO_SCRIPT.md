@@ -2,7 +2,7 @@
 
 The agent version is the selected submission candidate. This is a rehearsal outline,
 not a record of a completed video or promotion of the experimental branch. Meet the
-[agent go/no-go checkpoint](AGENT_MODE.md#go-no-go-checkpoint) before release.
+[agent go/no-go checkpoint](AGENT_MODE.md#gono-go-checkpoint) before release.
 The finished video must be at most three minutes;
 measure the exported duration and adjust the timing to actual provider latency.
 

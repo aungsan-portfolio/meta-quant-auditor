@@ -14,7 +14,7 @@ Meta Quant Auditor helps paper-trading developers and reviewers investigate why 
 > **Muse Spark Open** (`meta-models/muse-spark-open-1026`) through Baseten. Start with
 > the [run instructions](#run-locally), [draft agent demo script](docs/DEMO_SCRIPT.md),
 > or [baseline demo script](docs/DEMO_BASELINE.md). Agent promotion and the
-> final video remain subject to the [go/no-go checkpoint](docs/AGENT_MODE.md#go-no-go-checkpoint).
+> final video remain subject to the [go/no-go checkpoint](docs/AGENT_MODE.md#gono-go-checkpoint).
 
 On macOS/Linux, start the selected branch with:
 
