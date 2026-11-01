@@ -1,8 +1,9 @@
 # Synthetic Auditor Agent
 
-The selected agent submission candidate on `agent-mode` starts from baseline
-`af276a223f1bb916a281d55665c6e2276c5eefcb`. PR #7 remains a draft; promotion
-remains subject to the checkpoint below. The agent selects JSON actions; local code
+The selected Auditor Agent is available on `main` following the November 1, 2026
+merge of PR #7. It originated on `agent-mode` from baseline
+`af276a223f1bb916a281d55665c6e2276c5eefcb`; the baseline remains in Git history and
+the alternative demo script. The agent selects JSON actions; local code
 computes every gate, preserves history and compares supported claims. No broker, private
 bot, shell, arbitrary URL, file upload or real account data is exposed as a model tool.
 
@@ -88,6 +89,9 @@ passed. That includes 44 agent protocol/repeatability unit tests and 5 agent-pag
 exercise complete action runs; the subprocess startup test uses an empty key and
 does not connect to the provider. These are not browser-visual or live-provider tests.
 
+The same 232 unit tests and 14 UI checks were re-run successfully on November 1
+against selected runtime `e7243b2`, along with dependency compatibility checks.
+
 From this branch's repository root, with a local `.env` or environment key:
 
 ```powershell
@@ -156,6 +160,12 @@ The screenshots do not show preview, consent, intermediate updates or the exact 
 A screenshot alone is not a provider network capture and does not establish every
 claim status or future reliability.
 
+The subsequent November 1 Windows visual review was confirmed by the participant:
+preview, explicit consent and incremental steps were visible. The supplied recording
+measured 160.214 seconds (2:40.214), showed the two fictional paths, and retained the
+unverified-narrative notice. It does not independently identify the recorded source
+commit or attest provider traffic.
+
 The previewed context now includes a fixed request for one JSON action, in addition to
 the system instruction and first-step example. The spike reports coarse diagnostic
 categories for malformed output, including a prefix type when identifiable and whether
@@ -175,12 +185,24 @@ locally, rejecting invalid output without retry.
 
 ## Go/no-go checkpoint
 
-Checkpoint: **Tuesday night, November 3, 2026, Thailand time (ICT)**. Keep this PR a
-draft and preserve `main`, retaining the baseline as a fallback.
-The participant-supplied `eee6935` repeatability receipt shows both paths passed 3/3
-times each. Promote the agent demo only after: the selected commit's Linux/Windows CI
-passes; Windows visual review confirms preview/consent and incremental trace; and a
-recorded demo fits within three minutes. Assess repeatability in the visual run, with no automatic retries; a
-failed run must remain visible. Otherwise retain the baseline presentation. The
-organizer's confirmation that submissions remain editable until the deadline was
-supplied by the participant.
+**Completed November 1, 2026**, ahead of the originally planned November 3 checkpoint.
+The participant explicitly authorized promotion to `main` after all three checks:
+
+| Check | Recorded evidence |
+| --- | --- |
+| Selected runtime CI | `e7243b2`: all four Linux/Windows and Python 3.11/3.14 jobs passed in [run 41269602839](https://github.com/aungsan-portfolio/meta-quant-auditor/actions/runs/41269602839). |
+| Windows visual review | November 1: participant-confirmed preview, explicit consent and incremental steps. |
+| Recording at most three minutes | Reviewed November 1 MP4: 160.214 seconds (2:40.214). |
+
+PR #7 merged into `main` as `65eaa30`. The participant-supplied `eee6935`
+repeatability receipt remains the separate 3/3-per-scenario live record; no additional
+live run is claimed by this promotion. Baseline `af276a2` remains available in Git
+history and the [alternative walkthrough](DEMO_BASELINE.md). The private bots and
+their policies remain unchanged.
+
+This checkpoint promotes the code; it does not claim that the competition entry has
+been submitted or that a video URL is public. Closing/header wording revisions and
+video hosting are separate submission tasks. Measure any later edited recording
+again to keep it at most three minutes, and never present a fake or prior response as
+a new live request. The participant supplied the organizer's confirmation that
+submissions remain editable until the deadline.

@@ -106,8 +106,31 @@ The participant reported successful model explanations for a fresh quote (G01 PA
 
 On October 29, the participant supplied a Windows Cancellation Safety screenshot showing "Structured response received from Muse Spark" for the built-in pending-cancel/early-release/late-fill case. Seven displayed claims were marked `EVIDENCE_MATCH`: order statuses, cumulative fill, quote and exposure statuses, the current `BLOCK` gate, and a recorded early-release finding. The interpretation was visibly labeled unverified. This adds screenshot evidence of that one structured-claim UI flow; it is not an independent provider-network capture, broker verification, or validation of all model paths. Live-provider checks of the separate Workbench replay, Trace Inspector, and cancellation narrative paths remain unconfirmed in this record.
 
+## Agent promotion on November 1, 2026
+
+The participant confirmed completion of the agent checkpoint on November 1 and
+explicitly authorized merging PR #7 and updating post-merge documentation. The selected
+runtime was `e7243b2e5557a3f1a55e4681077a215dbfd1b94c`: all four Linux/Windows and
+Python 3.11/3.14 CI jobs passed, and a separate Linux/Python 3.12.14 checkout passed
+232 offline unit tests, 14 Streamlit/UI checks and dependency compatibility checks.
+
+For the November 1 Windows visual review, the participant confirmed that preview,
+explicit consent and incremental steps were visible. The supplied recording
+`Meta_Quant_Auditor_Demo_Final.mp4` measured 160.214 seconds (2:40.214). Its visible
+captions and fictional scenarios were reviewed; that does not independently identify
+the recording's source commit or attest provider traffic. The live repeatability
+receipt remains attributed to `eee6935`, rather than being relabelled as a new test.
+
+PR #7 was merged into `main` as `65eaa309a837ef0c67c6ff27b1bf1072bf6757a4` on
+November 1. This supersedes the earlier instruction to keep this feature off `main`;
+the private bots and their policies remain separate and unchanged. Baseline `af276a2`
+is retained in Git history and the alternative baseline demo script. This follow-up
+changes documentation only. Final video wording edits, a publicly accessible video
+URL and the competition submission are separate tasks, not actions implied by this
+merge. The recorded duration above applies to the reviewed video, not future edits.
+
 ## Demo disclosure
 
 > My paper-trading bot and an earlier audit scaffold existed before the hackathon. During this event, I built this standalone auditor, its synthetic scenarios, and the Meta Muse Spark explanation interface.
 
-The original [baseline demo script](docs/DEMO_BASELINE.md) distinguishes prior work from the event-built standalone auditor, presents domain experience and the lifecycle-specific checks, and includes an explicit live Meta request. Offline fictional claims and provider-returned claims are labeled separately. The selected agent candidate has a separate [draft demo script](docs/DEMO_SCRIPT.md); its recording and promotion remain subject to the documented checkpoint. The event organizers assess the submission under the applicable rules.
+The original [baseline demo script](docs/DEMO_BASELINE.md) distinguishes prior work from the event-built standalone auditor, presents domain experience and the lifecycle-specific checks, and includes an explicit live Meta request. Offline fictional claims and provider-returned claims are labeled separately. The selected agent has a separate [demo script](docs/DEMO_SCRIPT.md) and was promoted to `main` after the checkpoint recorded above. The event organizers assess the submission under the applicable rules.

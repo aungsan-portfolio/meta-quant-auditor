@@ -1,24 +1,26 @@
 # Meta Quant Auditor
 
-[![Agent branch offline tests](https://github.com/aungsan-portfolio/meta-quant-auditor/actions/workflows/offline-tests.yml/badge.svg?branch=agent-mode)](https://github.com/aungsan-portfolio/meta-quant-auditor/actions/workflows/offline-tests.yml?query=branch%3Aagent-mode)
+[![Main offline tests](https://github.com/aungsan-portfolio/meta-quant-auditor/actions/workflows/offline-tests.yml/badge.svg?branch=main)](https://github.com/aungsan-portfolio/meta-quant-auditor/actions/workflows/offline-tests.yml?query=branch%3Amain)
 
 Meta Quant Auditor helps paper-trading developers and reviewers investigate why a risk check blocks or passes a candidate. It reconstructs fictional cancellation timelines, keeps unsafe history visible, and compares selected structured claims from Meta Muse Spark Open with the supplied evidence.
 
-**Model proposes claims. Local code compares supported fields with evidence.** The main demo is a standalone workbench with built-in synthetic cases; the earlier trading bot is not needed to run it.
+**Model proposes steps and claims. Local code validates actions and compares supported fields with evidence.** The selected Auditor Agent demo runs on built-in synthetic cases; the earlier trading bot is not needed to run it.
 
-**Track:** Indie Developer candidate. **Theme:** Build for Your World.
+**Track:** Indie Developer. **Theme:** Build for Your World.
 
 > **Quick overview:** During the hackathon I built this standalone synthetic auditor,
 > its lifecycle cases, and its Meta integration; my paper-trading bot and earlier audit
 > scaffold predate the event. The selected Auditor Agent uses
 > **Muse Spark Open** (`meta-models/muse-spark-open-1026`) through Baseten. Start with
-> the [run instructions](#run-locally), [draft agent demo script](docs/DEMO_SCRIPT.md),
-> or [baseline demo script](docs/DEMO_BASELINE.md). Agent promotion and the
-> final video remain subject to the [go/no-go checkpoint](docs/AGENT_MODE.md#gono-go-checkpoint).
+> the [run instructions](#run-locally), [agent demo script](docs/DEMO_SCRIPT.md),
+> or alternative [baseline demo script](docs/DEMO_BASELINE.md). Auditor Agent is
+> available on `main` after the [checkpoint completed on November 1, 2026](docs/AGENT_MODE.md#gono-go-checkpoint).
 
-On macOS/Linux, start the selected branch with:
+For a fresh macOS/Linux checkout of `main`:
 
 ```bash
+git clone https://github.com/aungsan-portfolio/meta-quant-auditor.git
+cd meta-quant-auditor
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python -m streamlit run app.py
@@ -52,7 +54,7 @@ For a deterministic baseline walkthrough, run the app and open **Cancellation Sa
 
 This lets a reviewer distinguish a claim that matches a supplied field, a contradiction, and a claim for which evidence is missing. Matching fictional fields does not establish real-world truth or verify the meaning of an entire explanation.
 
-The [draft agent demo script](docs/DEMO_SCRIPT.md) covers the prior-work disclosure, domain experience, agent actions, and a live Meta request. Its timing is a rehearsal target; the recorded video must be 3:00 or less. The [baseline demo script](docs/DEMO_BASELINE.md) remains available for the Cancellation Safety and cockpit walkthrough.
+The [agent demo script](docs/DEMO_SCRIPT.md) covers the prior-work disclosure, domain experience, agent actions, and a live Meta request. The recording reviewed on November 1 measured **2:40.214**; any later edit must remain 3:00 or less. The [baseline demo script](docs/DEMO_BASELINE.md) remains available for the Cancellation Safety and cockpit walkthrough.
 
 ## What Meta adds
 
@@ -90,12 +92,13 @@ in 33.237 seconds and a clean, unchanged commit. Its response-source label is
 application-reported, not a signed provider attestation. These six scripted trials do
 not establish future reliability or verify the model's narrative.
 
-On this branch, the full local Linux/Python 3.12.14 suite passed **232 unit tests** and
-**14 Streamlit/UI checks**. The agent tests use fake transports; they are separate from
-the participant-reported live runs. Participant screenshots show the `late_fill`
-result and the `order_unavailable` stop in a Windows browser; later `late_fill`
-screenshots show the verification-first table, per-step timing and live label. They do
-not show preview, consent, incremental updates or the precise runtime commit.
+The selected runtime `e7243b2` passed **232 unit tests** and **14 Streamlit/UI checks**
+locally on Linux/Python 3.12.14 on November 1. These use fake transports, separately
+from the participant-reported live runs. The participant confirmed the November 1
+Windows visual review: preview, explicit consent and incremental steps were visible.
+The supplied recording also shows both fictional scenarios and the unverified-narrative
+label. It does not independently identify the recording's source commit or attest
+provider-network traffic.
 
 | View | What to inspect |
 | --- | --- |
@@ -148,7 +151,9 @@ On macOS/Linux, use `.venv/bin/python` in place of the Windows interpreter path.
 
 | Evidence | Scope and limits |
 | --- | --- |
-| Agent branch: 232 unit tests and 14 UI checks | Re-run on Linux/Python 3.12.14 on this branch at `5375325`; UI tests use local sockets and fake provider transports. These checks do not establish live provider or browser-visual behavior. |
+| Selected agent runtime: 232 unit tests and 14 UI checks | Re-run on Linux/Python 3.12.14 at `e7243b2` on November 1; UI tests use local sockets and fake provider transports. These checks do not establish live-provider or browser-visual behavior. |
+| November 1 Windows visual review and recording | The participant confirmed preview, consent and incremental steps. The reviewed MP4 measured 160.214 seconds (2:40.214). This records the reviewed file, not later video edits or a public hosting URL. |
+| Agent promotion to `main` | PR #7 merged on November 1 as `65eaa30` after the checkpoint passed. The earlier baseline remains in Git history and the alternative demo script. |
 | Earlier Windows evidence | The prior source passed 167 offline tests on Windows/Python 3.14. My earlier live checks covered single-gate and reported-paper-event explanations; a Windows cockpit screenshot also showed a live-runtime explanation. These limited observations do not validate every model path or the new dependency pins on Windows. |
 | October 29 Windows structured-claims screenshot | Cancellation Safety displayed a response received from Muse Spark for the built-in pending-cancel/early-release/late-fill case. All seven displayed claims were `EVIDENCE_MATCH`, the current gate was `BLOCK`, and the narrative was labeled unverified. This documents one UI observation, not an independent provider-network capture or comprehensive model-path validation. |
 | GitHub Actions | The workflow targets Linux and Windows on Python 3.11 and 3.14. Remote run results are available through the workflow link above; local checks are separate evidence. |
