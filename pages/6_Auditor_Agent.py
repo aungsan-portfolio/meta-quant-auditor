@@ -59,7 +59,7 @@ load_dotenv(ROOT / '.env', override=False)
 st.set_page_config(page_title='Synthetic Auditor Agent', page_icon='🔎', layout='wide')
 apply_theme()
 st.title('Synthetic Auditor Agent')
-st.info('Experimental draft · scripted FICTIONAL snapshots only. No broker or trade execution.')
+st.info('Scripted FICTIONAL snapshots only. No broker or trade execution.')
 st.caption(f'Configured provider: Baseten · Requested model: {MODEL}')
 if 'auditor_agent_job' not in st.session_state:
     st.session_state.auditor_agent_job = AgentJob()
