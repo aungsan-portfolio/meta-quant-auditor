@@ -1,0 +1,181 @@
+"""Explicit-consent, at-most-ten-minute protocol spike; never prints credentials.
+
+Run from the repository: python tools/run_agent_spike.py --consent
+Receipts contain statuses/action names, not model prose or request headers.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import sys
+import time
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from auditor.agent import AgentRun
+from auditor.agent_model import request_action_observed
+from auditor.model import MODEL
+from auditor.model_json import strict_json_object, unwrap_json_response
+
+
+def json_failure_diagnostic(text: str) -> dict | None:
+    """Classify a rejected envelope without retaining or returning model text.
+
+    This only observes the response already received. It does not repair the
+    response, relax the parser, call the provider again, or execute an action.
+    The receipt contains fixed labels rather than error messages or excerpts.
+    """
+    if type(text) is not str:
+        return {'error': 'NOT_TEXT', 'prefix': 'OTHER'}
+    stripped = text.strip()
+    prefix = ('OBJECT' if stripped.startswith('{') else
+              'FENCE' if stripped.startswith('```') else 'OTHER')
+    if not stripped or len(text) > 12_000:
+        return {'error': 'EMPTY_OR_OVERSIZED', 'prefix': prefix}
+    try:
+        body = unwrap_json_response(text)
+        strict_json_object(text)
+    except json.JSONDecodeError as exc:
+        position = ('START' if exc.pos <= 1 else
+                    'END' if exc.pos >= max(0, len(body) - 2) else 'MIDDLE')
+        code = 'EXTRA_CONTENT' if exc.msg == 'Extra data' else 'JSON_SYNTAX'
+        detail = {'error': code, 'prefix': prefix, 'position': position}
+        if prefix == 'OTHER' and position == 'START':
+            if stripped.startswith('\ufeff'):
+                prefix_kind = 'BYTE_ORDER_MARK'
+            elif stripped.startswith(('<think>', '<analysis>')):
+                prefix_kind = 'REASONING_TAG'
+            elif stripped.startswith('<'):
+                prefix_kind = 'MARKUP'
+            elif stripped.startswith('['):
+                prefix_kind = 'ARRAY'
+            elif stripped[0].isalpha():
+                prefix_kind = 'TEXT'
+            else:
+                prefix_kind = 'OTHER'
+            detail['prefix_kind'] = prefix_kind
+            detail['object_marker_later'] = '{' in stripped[1:]
+        return detail
+    except ValueError as exc:
+        codes = {'Unsupported JSON response envelope.': 'INVALID_FENCE',
+                 'Duplicate JSON property.': 'DUPLICATE_KEY',
+                 'Nonfinite JSON number.': 'NONFINITE_NUMBER',
+                 'JSON object required.': 'NOT_OBJECT',
+                 'Empty or oversized JSON response.': 'EMPTY_OR_OVERSIZED'}
+        return {'error': codes.get(str(exc), 'INVALID_JSON'), 'prefix': prefix}
+    except (TypeError, RecursionError, OverflowError):
+        return {'error': 'INVALID_JSON', 'prefix': prefix}
+    return None
+
+
+def run_case(scenario: str, api_key: str, *, transport=None, deadline=None) -> dict:
+    """One bounded run; never retry an action or return model prose."""
+    if scenario not in ('late_fill', 'order_unavailable'):
+        raise ValueError('Unsupported spike scenario.')
+    run = AgentRun(scenario)
+    diagnostic = None
+    requests = 0
+    window_ended = False
+    started = time.monotonic()
+
+    def ask(context):
+        nonlocal diagnostic, requests, window_ended
+        # Leave a full 30-second request window before the overall deadline.
+        if deadline is not None and time.monotonic() + 30.0 >= deadline:
+            window_ended = True
+            raise TimeoutError('Spike window ended.')
+        requests += 1
+        reply = request_action_observed(context, api_key, transport=transport)
+        try:
+            diagnostic = json_failure_diagnostic(reply.text)
+        except Exception:
+            # Diagnostics must never alter the actual validation or leak text.
+            diagnostic = {'error': 'DIAGNOSTIC_FAILED', 'prefix': 'OTHER'}
+        return reply
+
+    result = run.run(ask)
+    steps = result['steps']
+    actions = [s['action'] for s in steps]
+    gate = result['local_memo']['checks']['G03']
+    critical_codes = {finding['code'] for finding in gate['critical_history']}
+    if scenario == 'late_fill':
+        expected = (result['status'] == 'FINISHED' and result['final_report'] is not None
+                    and result['final_report']['review_required'] is True
+                    and gate['current_status'] == 'PASS'
+                    and {'RELEASE_ORDER_NOT_TERMINAL', 'LATE_FILL_AFTER_RELEASE'} <= critical_codes)
+    else:
+        expected = (result['status'] == 'NEEDS_INPUT'
+                    and result['reason'] == 'SCRIPTED_EVIDENCE_UNAVAILABLE'
+                    and result['final_report'] is None and gate['current_status'] == 'BLOCK'
+                    and bool(steps) and steps[-1]['action'] == 'query_order_status')
+    violations = {'MALFORMED_JSON', 'INVALID_SCHEMA', 'INVALID_ACTION', 'INVALID_ARGS',
+                  'INVALID_REASON', 'REPEATED_ACTION', 'AUDIT_REQUIRED', 'QUERY_NOT_REQUIRED'}
+    if result['status'] == 'REJECTED' and result['reason'] in violations:
+        protocol = 'VIOLATION'
+    elif result['status'] == 'STEP_LIMIT':
+        protocol = 'INCOMPLETE'
+    elif steps and result['status'] in ('FINISHED', 'NEEDS_INPUT') and all(s['validation'] == 'ALLOWED' for s in steps):
+        protocol = 'COMPLIANT'
+    else:
+        protocol = 'UNDETERMINED'
+    case = {'scenario': scenario, 'status': result['status'], 'reason': result['reason'],
+            'actions': actions, 'protocol': protocol, 'protocol_and_path_ok': bool(expected),
+            'requests_attempted': requests, 'elapsed_seconds': round(time.monotonic() - started, 3),
+            'request_failure_seconds': result['request_failure_seconds'],
+            'steps': [{'action': s['action'], 'validation': s['validation'],
+                       'request_seconds': s.get('request_seconds'), 'local_seconds': s.get('local_seconds'),
+                       'response_source': s.get('response_source')} for s in steps]}
+    if result['final_report'] is not None:
+        claims = result['final_report']['claims']
+        case['claim_counts'] = {status: sum(c['status'] == status for c in claims)
+                                for status in ('EVIDENCE_MATCH', 'CONTRADICTION', 'UNVERIFIED')}
+        case['human_review_required'] = result['final_report']['review_required']
+    if window_ended:
+        case['window_ended'] = True
+    if result['reason'] == 'MALFORMED_JSON' and diagnostic is not None:
+        case['json_diagnostic'] = diagnostic
+    return case
+
+
+def run_spike(api_key: str, *, transport=None) -> dict:
+    receipt = {'model': MODEL, 'protocol': 'json-action-v1', 'synthetic': True,
+               'status': 'NOT_RUN', 'reason': 'KEY_MISSING', 'cases': []}
+    if not api_key or not api_key.strip() or api_key.strip() == 'your_baseten_api_key_here':
+        return receipt
+    started = time.monotonic()
+    for scenario in ('late_fill', 'order_unavailable'):
+        case = run_case(scenario, api_key, transport=transport, deadline=started + 600)
+        receipt['cases'].append(case)
+        if not case['protocol_and_path_ok']:
+            break  # No repair call, automatic retry, or second-case rescue.
+    receipt['elapsed_seconds'] = round(time.monotonic() - started, 3)
+    receipt['status'] = 'GO_PROTOCOL' if len(receipt['cases']) == 2 and all(
+        c['protocol_and_path_ok'] for c in receipt['cases']) else 'NO_GO'
+    receipt['reason'] = 'TWO_SCRIPTED_PATHS_CHECKED' if receipt['status'] == 'GO_PROTOCOL' else 'INSPECT_FAILED_PATH'
+    return receipt
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--consent', action='store_true', help='Send only built-in synthetic facts to Baseten.')
+    parser.add_argument('--output', type=Path, help='Optional local receipt, e.g. reports/agent-spike.json.')
+    args = parser.parse_args(argv)
+    if not args.consent:
+        parser.error('--consent is required for live requests')
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / '.env', override=False)
+    receipt = run_spike(os.environ.get('BASETEN_API_KEY', '').strip())
+    text = json.dumps(receipt, indent=2, allow_nan=False)
+    print(text)
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(text + '\n', encoding='utf-8')
+    return 0 if receipt['status'] == 'GO_PROTOCOL' else 2
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

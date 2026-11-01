@@ -28,11 +28,79 @@ The review installed and pinned Streamlit 1.66.1 and python-dotenv 1.2.4 in a se
 
 The participant also shared a Cerebral Valley APP reply listing the general disclosure, repository, Meta-only runtime and three-minute-video rules. They subsequently reported the Indie prior-work confirmation recorded above and additional organizer requirements: explain domain expertise and differences from a generic checker in both the README and demo, and show a live Meta runtime call in the demo. The README now describes the participant's paper-bot operations and log-review experience, lifecycle reconstruction, retained critical history, missing-evidence handling, bounded claim comparisons, and explicit model requests. The linked demo script covers those points without showing the earlier bot's code or private records.
 
-On October 30, the participant shared the organizer's project-specific answer: paper-trading risk monitoring is an eligible use case when Meta models are a real part of the project. The response also calls for a pre-existing versus new opening disclosure, clear labeling of events originating from the pre-existing paper bot, exclusion of the old bot's code and Git history, and synthetic replay data so the submitted auditor runs independently. The built-in cases in the demo script are fictional and newly fabricated; they are not represented as actual paper-bot events. The script includes a live Muse Spark structured-claim request alongside local deterministic checks.
+On October 30, the participant shared the organizer's project-specific answer: paper-trading risk monitoring is an eligible use case when Meta models are a real part of the project. The response also calls for a pre-existing versus new opening disclosure, clear labeling of events originating from the pre-existing paper bot, exclusion of the old bot's code and Git history, and synthetic replay data so the submitted auditor runs independently. The built-in cases in the baseline demo script are fictional and newly fabricated; they are not represented as actual paper-bot events. That script includes a live Muse Spark structured-claim request alongside local deterministic checks.
 
 The cross-platform CI review also refined the UI-test network guard: literal-loopback TCP connections needed by Windows asyncio are allowed, while external addresses and provider connection helpers remain blocked. A ninth UI-suite check exercises local TCP and verifies that external addresses are rejected. This is test-harness behavior; it does not change the application gates or enable automatic model requests.
 
 ## Live-test record
+
+On October 31, a separate `agent-mode` draft was prepared from baseline `af276a2` at
+the participant's explicit request, leaving `main` unchanged. It adds a bounded JSON
+action protocol, local action validation, scripted fictional order/position/protection
+queries, existing claim-verifier integration, a preview/consent Streamlit view and a
+live-spike CLI. Deterministic gates/history and the private bot's policies are unchanged.
+The model has no broker, arbitrary network, shell or filesystem tool. New fake-transport
+tests cover valid/invalid runs, schema/number limits, missing evidence, step/repeat
+limits, gate-change attempts, consent, cancellation and request-worker timeout cleanup.
+The CLI was invoked here but returned NOT_RUN / KEY_MISSING without a provider request.
+The participant subsequently supplied a Windows live-spike receipt: the `late_fill`
+case stopped at the first response with REJECTED / MALFORMED_JSON, and the second case
+did not run. That receipt did not preserve response text, so it does not identify the
+precise formatting error. The fixed instruction was clarified with a concrete JSON
+example, and the spike receipt reports only bounded error categories for rejected JSON.
+In a second participant-supplied Windows receipt, `late_fill` finished in four actions
+with human review required, but `order_unavailable` was rejected at its first response
+as MALFORMED_JSON with a non-object/fence prefix. The combined run remained NO_GO; the
+response itself was not retained. A fixed output-format instruction was added to the
+previewed user context and the diagnostic categories were refined. The participant's
+third Windows receipt, run on `4228e98`, reported GO_PROTOCOL in 12.838 seconds:
+`late_fill` finished after the audit, position query, protection query, and report;
+`order_unavailable` ran the audit and order query, then stopped at NEEDS_INPUT when
+the scripted snapshot was unavailable. The first report still required human review.
+This is a participant-reported CLI result for two fictional cases, not an independent
+network capture, a browser-visual test, or proof of consistent future behavior. The
+earlier failures occurred on earlier revisions, so they do not establish a failure
+rate for `4228e98`. See [AGENT_MODE.md](docs/AGENT_MODE.md) for the test scope and
+checkpoint.
+The branch passed 221 offline unit tests and 12 Streamlit/UI-suite checks locally on
+Linux/Python 3.12.14; a real request-worker process was exercised with an empty key,
+and provider requests in the remaining tests used fake transports.
+
+The participant then shared a Windows screenshot showing that the initial Agent preview
+expanded into a long JSON display. The draft UI now shows a compact fictional lifecycle
+summary, with the exact initial evidence, all scripted snapshots and fixed instruction
+available in collapsed sections before consent. Completed steps show readable local
+summaries with optional technical details. A new preview and consent are required for
+each run or scenario change. The agent protocol, model request, audit and scenarios were
+not changed. The revised UI passed five agent-page AppTests with a fake transport. A
+subsequent participant-provided Windows screenshot shows the `late_fill` completed
+trace as four step cards, a final structured-claims table and the unverified narrative
+warning. A later screenshot shows `order_unavailable` with an allowed order-status
+query followed by NEEDS_INPUT / SCRIPTED_EVIDENCE_UNAVAILABLE. Those screenshots do not
+show the preview, consent, incremental updates, exact commit or an independent
+provider-network capture.
+
+After those screenshots, this draft put the verification column first, hid the claim
+index and added configured provider/model text, application-reported response-source
+labels, and locally measured per-step durations. Injected transports do not earn the
+live-response label; the label is not a signed provider attestation. The new CLI plans
+3–5 independent repetitions per fictional scenario and keeps failed/undetermined runs
+in its counts. It requires explicit consent and contains no per-run retry. Later
+participant-provided screenshots show a `late_fill` result with the live label and
+per-step timing; they do not independently establish the provider connection or commit.
+
+The participant then supplied a Windows repeatability receipt for October 31,
+12:22:54–12:23:27 UTC (19:22:54–19:23:27 Thailand time), on runtime commit
+`eee6935439731989c61a5227197d349377c65f02`; the receipt reported a clean working tree
+at the start and end. Each of three `late_fill` runs finished with human review required;
+each of three `order_unavailable` runs stopped at NEEDS_INPUT. All six were protocol
+compliant and followed their expected paths. The three finished reports recorded 22,
+18 and 23 selected claim matches, with no contradictions or unverified claims. The
+batch recorded 18 requests and took 33.237 seconds. Its fixed-worker response-source
+labels are application-reported, not an independent provider attestation. The data
+and queries were fictional; matched claims do not verify narrative or real-world facts.
+These six trials do not establish future reliability. The original two-scenario Windows
+spike remains attributed to `4228e98`; earlier failures were on earlier revisions.
 
 The participant reported successful model explanations for a fresh quote (G01 PASS), a stale quote (G01 BLOCK), and a wide spread (G02 VETO) in the original single-gate Windows demo. The participant also reported 150 offline tests passing on Windows, with three mocked HTTP-error resource-cleanup warnings, and exercised the synthetic cancellation follow-up while critical history remained visible. Screenshots did not show a submitted review action. These are participant-reported observations, not independent broker or source verification. The project does not include live logs or credentials; offline tests use fake transports.
 
@@ -42,4 +110,4 @@ On October 29, the participant supplied a Windows Cancellation Safety screenshot
 
 > My paper-trading bot and an earlier audit scaffold existed before the hackathon. During this event, I built this standalone auditor, its synthetic scenarios, and the Meta Muse Spark explanation interface.
 
-The [demo script](docs/DEMO_SCRIPT.md) distinguishes prior work from the event-built standalone auditor, presents domain experience and the lifecycle-specific checks, and includes an explicit live Meta request. Offline fictional claims and provider-returned claims are labeled separately. The event organizers assess the submission under the applicable rules.
+The original [baseline demo script](docs/DEMO_BASELINE.md) distinguishes prior work from the event-built standalone auditor, presents domain experience and the lifecycle-specific checks, and includes an explicit live Meta request. Offline fictional claims and provider-returned claims are labeled separately. The selected agent candidate has a separate [draft demo script](docs/DEMO_SCRIPT.md); its recording and promotion remain subject to the documented checkpoint. The event organizers assess the submission under the applicable rules.
